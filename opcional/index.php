@@ -35,6 +35,7 @@
     $gsent = $pdo->prepare($sql_leer);
     $gsent->execute();
     $resultado = $gsent->fetchAll();
+    // hola mundo
 ?>
     <div class = "container">
         <?php
