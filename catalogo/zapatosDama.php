@@ -1,6 +1,7 @@
 <?php
     include_once '../conexion.php';
     session_start();
+    // hola esto es una prueba
 ?>
 
 
