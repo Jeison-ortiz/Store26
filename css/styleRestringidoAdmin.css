@@ -1,0 +1,29 @@
+
+#formulario1{
+    text-align: center;
+    width: 50%;
+    border: 2px solid green;
+}
+#selctArticulos{
+    width: 30%;
+    text-align: center;
+    
+}
+#formLoadArticule{
+    width: 50%;
+    float: center;
+    text-align: center;
+    
+}
+#cardArticule{
+    width: 30%;
+    text-align: center;
+    border: 2px solid red;
+    
+}
+
+
+footer{
+    clear: both;
+}
+

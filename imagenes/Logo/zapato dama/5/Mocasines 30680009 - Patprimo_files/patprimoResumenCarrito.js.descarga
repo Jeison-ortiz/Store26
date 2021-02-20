@@ -1,0 +1,115 @@
+var resumenCarritoHeader = function() {
+    var init = function() {
+        pintarResumenCarrito();
+        showQtyHeader();
+    };
+    var showQtyHeader = function() {
+        $(".cart").show();
+        $(".carritoComprasBox").hide();
+        var countProductsCart = 0;
+        vtexjs.checkout.getOrderForm().done(function(orderForm) {
+            $.each(orderForm.items, function(indexItems, valueItems) {
+                countProductsCart += valueItems.quantity;
+            });
+            $('.carritoCompras .infoCarrito .quantity p').text(countProductsCart);
+        });
+    };
+    var pintarResumenCarrito = function() {
+        vtexjs.checkout.getOrderForm().done(function(orderForm) {
+            if (orderForm.items.length > 0) {
+                $('.productExist').show();
+                $('.productNoExist').hide();
+                var htmlItems = '';
+                var countProducts = 0;
+                var totalPrice = 0;
+                $.each(orderForm.items, function(indexItems, valueItems) {
+                    var priceUnitaryProduct = ((valueItems.sellingPrice / 100) + (valueItems.tax / 100));
+                    htmlItems += '<tr data-idrow="' + countProducts + '" class="rowDataItem">';
+                    htmlItems += '<td>';
+                    htmlItems += '<img alt="' + valueItems.name + '" src="' + valueItems.imageUrl + '" class="imgProduct">';
+                    htmlItems += '</td>';
+                    htmlItems += '<td>';
+                    htmlItems += '<p class="nameProduct">';
+                    htmlItems += '<a href="' + (valueItems.detailUrl) + '">' + valueItems.name + '</a>';
+                    htmlItems += '</p>';
+                    htmlItems += '<p class="priceProduct">$ ' + funcionalidadesGeneralesNew.formatearMoneda(priceUnitaryProduct, 0, '.', ',') + '</p>';
+                    htmlItems += '<p class="qtyProduct"></p>';
+                    htmlItems += '</td>';
+                    htmlItems += '<td>';
+                    htmlItems += '<a href="#remove" data-idremove="' + countProducts + '" class="removeProduct"><img src="/arquivos/trashMinicart.png"></a>';
+                    htmlItems += '</td>';
+                    htmlItems += '</tr>';
+                    totalPrice += (priceUnitaryProduct * valueItems.quantity);
+                    countProducts++;
+                });
+                var totalOrder = funcionalidadesGeneralesNew.formatearMoneda(totalPrice, 0, '.', ',');
+                $('.productExist table tbody').empty();
+                $('.productExist table tbody').append(htmlItems);
+                $('.totalOrder .text .total').text('$ ' + totalOrder);
+                addCantidadCarrito();
+                removeProduct();
+            } else {
+                $('.productExist').hide();
+                $('.productNoExist').show();
+            }
+        });
+    };
+    var removeProduct = function() {
+        $('.removeProduct').click(function() {
+            console.info('removeProduct CLICK!!!');
+            var btnDelete = $(this);
+            var itemIndex = btnDelete.data('idremove');
+            btnDelete.closest('.rowDataItem').fadeOut();
+            vtexjs.checkout.getOrderForm().then(function(orderForm) {
+                var item = orderForm.items[itemIndex];
+                item.index = itemIndex;
+                return vtexjs.checkout.removeItems([item]);
+            }).done(function(orderForm) {
+                btnDelete.remove();
+                pintarResumenCarrito();
+                showQtyHeader();
+            });
+        });
+    };
+    
+    var addCantidadCarrito = function(){
+        vtexjs.checkout.getOrderForm().done(function(orderForm){
+            for(var i=0;i<orderForm.items.length;i++){
+                $(".qtyProduct").eq(i).text("");
+                //$(".rowDataItem td:last-child").eq(i).remove();
+
+                divBotonesCantidadCartDesktop=$("<div>").attr("class","divBotonesCantidadCartMobile");
+
+                //Elementos
+                var buttonRestarCantidad=$("<button>").attr({"class":"botonCantidad","data-type":"minus","data-field":i})
+                    .click(objPrincipal.updateItemsDesktop)
+                    .text("-")
+                    .appendTo(divBotonesCantidadCartDesktop);
+
+                var spanCantidad=$("<span>").attr({"class":"spanCantidad","id":"spanCantidad"+i})
+                    .text(orderForm.items[i].quantity)
+                    .appendTo(divBotonesCantidadCartDesktop);
+
+                var buttonSumarCantidad=$("<button>").attr({"class":"botonCantidad","data-type":"plus","data-field":i})
+                    .click(objPrincipal.updateItemsDesktop)
+                    .text("+")
+                    .appendTo(divBotonesCantidadCartDesktop);
+        
+                var buttonRemoveItems=$("<button>").attr({"class":"botonRemoveItems","data-type":i})
+                    .click(objPrincipal.removeItemsDesktop)
+                    .appendTo(divBotonesCantidadCartDesktop);
+                var imgRemoveItems=$("<img>").attr("src","/arquivos/trashMinicart.png").appendTo(buttonRemoveItems);
+
+
+                divBotonesCantidadCartDesktop.appendTo($(".qtyProduct").get(i));
+            }
+        })
+    };
+    return {
+        init: init,
+        showQtyHeader: showQtyHeader,
+        pintarResumenCarrito: pintarResumenCarrito,
+        addCantidadCarrito: addCantidadCarrito
+    }
+}();
+resumenCarritoHeader.init();

@@ -1,0 +1,427 @@
+
+
+// Importante dejar parametrizado los tamanhos de las imagenes según cada sitio
+var imgZoom = {
+	native_width:0,
+	native_height:0,
+	imageLoading:false,
+	centinela_img:false,
+	mobile:false,
+	activeImg_mobile:false,
+	imgesViewed:[],
+	img_small_active:null,
+	init:function(){
+
+		//console.log('se carga imgZood ajustado a los tamaños');
+		var talla = imgZoom.defaultSize(skuJson.dimensionsMap.Talla);
+
+		// PAT-136 No mostrar color de skus que no estén disponibles (por stock por ejemplo)
+		/*$(".group_0").children("label").hide();
+		for(var i = 0; i < skuJson.skus.length; i++){
+			if(skuJson.skus[i].available == true){
+				$(".group_0").children("label:contains("+ skuJson.skus[i].dimensions.Color +")").show();
+			}
+		}*/
+
+		var initialSkuPosition;
+		if(location.search.indexOf('idsku') !== -1 ){
+			var idsku = getUrlParameter('idsku');
+			initialSkuPosition = skuJson.skus.map(function(i){ return i.sku == parseInt(idsku) }).indexOf(true);
+		}else{
+			var coloresAOcultar = [];
+			skuJson.dimensionsMap.Color.forEach(function(color){
+				coloresAOcultar.push(
+					{'color' :color,
+					'qty' : skuJson.skus.map( v => v.dimensions.Color == color && v && v.available).filter(i => i).length == 0});
+			});
+			var firstColor = coloresAOcultar.filter(i => !i.qty)[0]["color"];
+			initialSkuPosition = skuJson.skus.map(function(i){ return i.dimensions.Color == firstColor}).indexOf(true);
+		}
+		//console.log('se ejecuta la imagen inicial');
+		imgZoom.loadImg(initialSkuPosition);
+
+		if(talla != undefined){
+			var skuUpdateProductImageListener = new Vtex.JSEvents.Listener('updateProductImage', function($newSkuId){
+				//console.log('cambio el sku')
+				var positionFound = -1;
+				for(var i = 0; i < skuJson.skus.length && positionFound == -1; i++){
+					if(skuJson.skus[i].sku == $newSkuId.newSkuId){
+						positionFound = i;
+					}
+				}
+				imgZoom.loadImg(positionFound);
+			});
+
+			$(".group_0").click(function(){
+				var data = $(".group_1").find('input');
+				var centinela = false;
+				if(!data.length && $('.group_2').length){
+					data = $(".group_2").find('input');
+				}
+				for(var i = 0; i <= data.length && centinela == false; i++){
+					if(!data[i].disabled){
+						$(data[i]).trigger( "click" );
+						centinela = true;
+					}
+				}
+			});
+			$(".group_0 input").click(function(){
+				var params = location.search;
+				if(params.indexOf('idsku=') > -1){
+					var sku = $(this).attr('data-value');
+					updateProductImageSkupage(sku);
+				}
+			});
+			skuEventDispatcher.addListener(skuSelectionChangedEventName, skuUpdateProductImageListener);
+
+		}else{
+			var data = $(".group_0").find('input');
+			for(var i = 0; i < data.length; i++){
+				data[i].onclick = function(){
+					var positionFound = -1;
+					for(var i = 0; i < skuJson.skus.length && positionFound == -1; i++){
+						if(skuJson.skus[i].values[0] == this.value && talla == skuJson.skus[i].values[1]){
+							positionFound = i;
+						}
+					}
+					imgZoom.loadImg(positionFound);
+				}
+			}
+		}
+
+		var mq = window.matchMedia("(max-width: 480px)");
+		if (mq.matches) {
+			imgZoom.mobile = true;
+			$(".boxImage").prepend('<div class="x-close" id="close_img" onclick="imgZoom.closeLigthbox();" style="display:none">X</div>');
+			$(".boxImage").append('<div id="container-imgs-small"></div>');
+		}
+	},
+	defaultSize:function($tallas){
+		if($tallas != null && $tallas != undefined && $tallas.length >0){
+			if(isNaN($tallas[0]) && $tallas[0] !='UNI') {
+				return 'M';
+			}
+			else if($tallas[0] =='UNI'){
+				return 'UNI';
+			}
+			else if( parseInt($tallas[0]) >=28 ){
+				return '32'
+			}
+			else{
+				var lowestNumber = null;
+				for(var i = 0; i < $tallas.length; i++){
+					if( typeof lowestNumber != "number" ){
+						lowestNumber = parseInt($tallas[i]);
+					}
+					if( parseInt($tallas[i]) < lowestNumber ){
+						lowestNumber = $tallas[i];
+					}
+				}
+				if(lowestNumber < 10){
+					return "10";
+				}
+				else{
+					return "12";
+				}
+			}
+		}
+	},
+	loadImg:function($position){
+		//console.log('se va a cargar la imagen grande')
+		document.getElementById('container-img').style.display = "block";
+		imgZoom.imageLoading = true;
+		var img = document.createElement('img');
+		img.src = skuJson.skus[$position].image.replace("-950-1140","-1500-1800");
+		img.id = 'img_zoom';
+		img.title = "Compra "+skuJson.name+" en Patprimo con el mejor estilo - 1";
+		img.alt = skuJson.name+" Patprimo - 1";
+
+		if (imgZoom.mobile == true){
+			img.width = 230;
+		}else{
+			img.width = 950;
+		}
+		img.onload = function(){
+			if (imgZoom.mobile == false){
+				document.getElementById('container-img').style.display = "block";
+				imgZoom.loadZoom('img_zoom',950);
+			}else{
+				imgZoom.loadZoom('img_zoom',100);
+				var touchtime = 0;
+				this.addEventListener('touchstart',function(){
+					if(touchtime == 0){
+						touchtime = new Date().getTime();
+					}else{
+						if((new Date().getTime()-touchtime) < 500 ){
+							touchtime = 0;//new Date().getTime();
+							imgZoom.closeLigthbox();
+						}else{
+							console.log('un solo toque')
+							touchtime = new Date().getTime();
+						}
+					}
+				},false);
+			}
+			imgZoom.imageLoading = false;
+			imgZoom.centinela_img = false;
+
+		}
+		document.getElementById('container-img').innerHTML = "";
+		document.getElementById('container-img').appendChild(img);
+		$('#container-img').append('<div class="zoom-logo"></div>');
+		$('.owl-carousel').css('display','none');
+	
+		var vadataInArrImages = false;
+		var images = [];
+		if(imgZoom.imgesViewed.length > 0){
+			for(var i = 0; i < imgZoom.imgesViewed.length && vadataInArrImages == false; i++){
+				if(imgZoom.imgesViewed[i].id == skuJson.skus[$position].sku){
+					vadataInArrImages = true;
+					images = imgZoom.imgesViewed[i].images;
+				}
+			}
+		}else{
+			vadataInArrImages = false;
+		}
+		if(vadataInArrImages == false){
+			$.getJSON('/produto/sku/' + skuJson.skus[$position].sku, function($data){
+				//console.log($data);
+				imgZoom.imgesViewed.push({id:skuJson.skus[$position].sku,images:$data[0].Images});
+				imgZoom.paintListImgChilds($data[0].Images);
+			});
+		}else{
+			imgZoom.paintListImgChilds(images);
+		}
+
+      	setTimeout(function(){
+			$('.owl-carousel').owlCarousel().trigger('refresh.owl.carousel');
+          	selectOneSkuTallaStock();
+          	if($(".myTallas").length)
+				controlMyTallasAvailable();
+			updateDiscountPercentage();
+		},500);
+		//var skuName=skuJson.skus[$position].skuname;
+	},
+	paintListImgChilds:function($images){
+		if(imgZoom.mobile == false){
+			var list = '<ul>';
+			var images = $images;
+			var title = "Compra "+skuJson.name+" en Patprimo con el mejor estilo";
+			var alt = skuJson.name+" Patprimo";
+			for(var i = 0; i < images.length; i++){
+				list += '<li><a onclick="imgZoom.changeImg(\''+images[i][3].Path+'\',\'img_zoom\',\''+alt+" - "+(i+1)+'\',\''+title+" - "+(i+1)+'\');">'+
+						'<img title="'+title+" - "+(i+1)+'" alt="'+alt+" - "+(i+1)+'" src="'+images[i][4].Path+'" style="width:90px"></li>';
+			}
+			list += '</ul>';
+			document.getElementById('imgs-min').innerHTML = list;
+
+		}else{
+			var list = '<ul>';
+			var images = $images;
+			for(var i = 0; i < images.length; i++){
+				list += '<li><a onclick="imgZoom.changeImg(\''+images[i][3].Path+'\',\'img_zoom\',\''+alt+" - "+(i+1)+'\',\''+title+" - "+(i+1)+'\');">'+
+						'<img src="'+images[i][4].Path+'" style="width:90px"></li>';
+			}
+			list += '</ul>';
+			document.getElementById('imgs-min').innerHTML = list;
+			carouselImagesProduct();
+
+		}
+	},
+	loadSlider:function($ids){
+		$('.bxslider').bxSlider({
+			minSlides:1,
+			maxSlides:1,
+			infiniteLoop:true,
+			pager:true,
+			slideWidth:230,
+			controls:false,
+		});
+
+		$(".bx-viewport").append('<div class="mensaje-toque" id="mensaje_toque">Doble tap para zoom</div>');
+	},
+	changeImg:function($url,$id_img,alt,title){
+
+		console.log('cambia imagen');
+		document.getElementById($id_img).src =  $url.replace("-950-1140","-1500-1800")
+		document.getElementById('img_large').style.backgroundImage = "url('"+ $url.replace("-950-1140","-1500-1800") +"')";
+		document.getElementById('img_large').style.backgroundImage = "url('"+ $url.replace("-950-1140","-1500-1800") +"')";
+		document.getElementById('img_zoom').alt = alt;
+		document.getElementById('img_zoom').title = title;
+	},
+	zoom:function(e,$parent,$id_img,$version){
+
+		if(!imgZoom.native_width && !imgZoom.native_height){
+			var image_object = new Image();
+			image_object.src = $(".small").attr("src");
+			imgZoom.native_width = image_object.width;
+			imgZoom.native_height = image_object.height;
+		}else{
+
+			if($version == "mobile"){
+				var magnify_offset = $("#"+$id_img).offset();
+				var mx = e.touches[0].clientX - magnify_offset.left;
+				var my = e.touches[0].clientY - magnify_offset.top;
+			}else{
+				var magnify_offset = $parent.offset();
+				var mx = e.pageX - magnify_offset.left;
+				var my = e.pageY - magnify_offset.top;
+			}
+
+			if(mx < $("#"+$id_img).width() && my < $("#"+$id_img).height() && mx > 0 && my > 0){
+				$(".large").fadeIn(100);
+			}else{
+				$(".large").fadeOut(100);
+			}
+
+			if($(".large").is(":visible")){
+				var rx = Math.round(mx/$("#"+$id_img).width()*imgZoom.native_width - $("#img_large").width()/2)*-1;
+				var ry = Math.round(my/$("#"+$id_img).height()*imgZoom.native_height - $("#img_large").height()/2)*-1;
+				var bgp = rx + "px " + ry + "px";
+				var px = mx -  $(".large").width()/2;
+				var py = my - $(".large").height()/2;
+				$(".large").css({left: px, top: py, backgroundPosition: bgp});
+			}
+		}
+	},
+	activeScroll:function($id_img){
+		$(".staticHeaderMobile").css('display','block');
+		$(".boxImage").css('margin-top','auto');
+		document.getElementById('close_img').style.display = "none";
+		document.body.style.position = "initial";
+		document.body.style.overflowY = "auto";
+	},
+	deleteScroll:function(){
+		$(".staticHeaderMobile").css('display','none');
+		var top_cont = $( ".boxImage" ).offset().top
+		$(".boxImage").css('margin-top','-'+top_cont+'px');
+		document.body.style.position = "fixed";
+		document.body.style.overflowY = "scroll";
+	},
+	backMobile:function(){
+
+		var div = document.createElement("div");
+		div.id = "back_img";
+		div.style.display = "none";
+		div.style.background = "black";
+		div.style.width = "100%";
+		div.style.height = "100%";
+		div.style.position = "fixed";
+		div.style.zIndex = "9";
+		div.style.opacity = "0.5";
+		$("body").prepend(div);
+		document.getElementById("back_img").addEventListener('click',function(){
+			imgZoom.closeLigthbox();
+		});
+	},
+	closeLigthbox:function(){
+		console.log('se ejecuta closeLigthbox');
+		imgZoom.activeImg_mobile = false;
+		document.getElementById("back_img").style.display = "none";
+		document.getElementById('container-img').style.display = "none";
+		$(".bx-wrapper .bx-viewport").css('display','inherit');
+		var id = Number(imgZoom.img_small_active.id.replace('img_small_',''));
+		if($($(".bx-pager-link")[(id + 1)]).length > 0){
+			$($(".bx-pager-link")[(id + 1)]).trigger('click');
+		}else{
+			$($(".bx-pager-link")[0]).trigger('click');
+		}
+
+		imgZoom.deleteBakcround();
+		imgZoom.activeScroll();
+	},
+	deleteBakcround:function(){
+		document.getElementById("back_img").style.display = "none";
+	},
+	/*
+	 Funcionalidad de zoom para la imagen
+	 @param {String} $id_img - id de la imagen que se desea agregar la funcionalidad
+	 @param {INT} $width - anhra que se desea ajustar la imagen
+	 @return {String} N/A
+	 */
+	loadZoom:function($id_img,$width){
+		if(imgZoom.centinela_img == false && $("#img_large").length == 0){
+			imgZoom.centinela_img = true;
+			$("#"+$id_img).before('<div class="large"  id="img_large"></div>');
+			imgZoom.createStyles(document.getElementById($id_img).src);
+			document.getElementById($id_img).className += "small";
+
+			if(document.getElementById($id_img).complete == true){
+				if (imgZoom.mobile == true){
+					imgZoom.backMobile();
+					document.getElementById('img_large').style.zIndex = 999;
+					document.getElementById($id_img).style.zIndex = 99;
+					$("#"+$id_img).css('max-width','100%');
+					document.getElementById($id_img).style.width = $width+'%';
+					setTimeout(function(){
+						document.getElementById($id_img).style.position = 'relative';
+
+					},500);
+					document.getElementById($id_img).parentNode.style.position = 'relative';
+					document.getElementById($id_img).parentNode.style.overflow = 'hidden';					
+					var touchtime = 0;
+
+					document.getElementById($id_img).parentNode.addEventListener("touchmove", function(e){
+						imgZoom.zoom(e,this,$id_img,'mobile');
+					});
+					document.getElementById($id_img).parentNode.addEventListener("touchend", function(e){
+						$(".large").fadeOut(100);
+					}, false);
+				}else{
+					$("#"+$id_img).parent().css('width',$("#"+$id_img).width()+'px');
+					$("#"+$id_img).parent().css('position','relative');
+					$("#"+$id_img).parent().css('overflow','hidden')
+					$("#"+$id_img).parent().mousemove(function(e){
+						$(".large").fadeIn(100);
+						imgZoom.zoom(e,$(this),$id_img);
+					}).mouseout(function() {
+						$(".large").fadeOut(100);
+					});
+				}
+			}else{
+				setTimeout(function(){
+					console.log("no esta listo");
+					imgZoom.loadZoom($id_img,$width);
+				  	$('.owl-carousel').owlCarousel().trigger('refresh.owl.carousel');
+				},500);
+			}
+		}
+	},
+	/*
+	 agrega los estilos para laimagen grande
+	 @param{String} $url - ruta de la imagen que se va a mostar
+	 @return{String} N/A
+	 */
+	createStyles:function($url){
+		var css = '.large {width: 500%; height: 500%;'+
+				'position: absolute;'+
+				'background: url("'+$url+'") no-repeat;'+
+				'display: none;}';
+		var sty = document.createElement('style');
+		sty.type = 'text/css';
+		sty.appendChild(document.createTextNode(css));
+		document.body.appendChild(sty);
+	}
+};
+
+function updateProductImageSkupage(sku){
+	var positionFound = -1;
+	for (var i = 0; i < skuJson.skus.length && positionFound == -1; i++) {
+		if (skuJson.skus[i].values[0] == sku) {
+			positionFound = i;
+		}
+	}
+	imgZoom.loadImg(positionFound);
+}
+function selectOneSkuTallaStock(){
+	if(!$(".body_product li.select.skuList.item-dimension-Talla label.checked.sku-picked").length){
+		$("li.select.skuList.item-dimension-Talla label:not(.item_unavaliable)").first().click();
+	}
+if(!$(".body_product li.select.skuList.item-dimension-Color label.checked.sku-picked").length){
+		$("li.select.skuList.item-dimension-Color label:not(.item_unavaliable)").first().click();
+	}
+}
+$(document).ready(function(){
+	imgZoom.init();
+	$('.owl-carousel').owlCarousel().trigger('refresh.owl.carousel');
+});

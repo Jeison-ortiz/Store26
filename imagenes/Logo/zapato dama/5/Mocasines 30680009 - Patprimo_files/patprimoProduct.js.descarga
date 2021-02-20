@@ -1,0 +1,911 @@
+var funcionalidadesProduct = function () {
+    var init = function () {
+        generales();
+    }
+
+    var generales = function () {
+        location.href.indexOf('idsku') !== -1 ? $('body').addClass('idsku') : "";
+        //mostrar colores a seleccionar
+        $(".dimension-Color").each(function () {
+            var url = '/arquivos/';
+            var color = url + $(this).text() + '.jpg';
+            $(this).css("background-image", 'url(' + color + ')');
+        });
+        //Cambio posición div thumbs imagen producto
+        $('.imagenProductoCustomMiniaturas').insertAfter(".buyButton");
+        $('#show .thumbs').insertAfter("#addItensToCart");
+        $('#container-img').append('<div id="zoom-logo"></div>');
+        $('.price_total').insertBefore("#addItensToCart");
+        // Poner la url al share de facebook
+        $('.fb-share-button').attr('data-href', window.location.href);
+        if (!$('body').hasClass("body_product")) {
+            if(!$("body.bigImg").length || $(window).width() < 769){
+                $('.productNew .specificationsProduct .group').click(function () {
+                    $('.productNew .specificationsProduct table').slideToggle();
+                });
+            }
+        }
+        $('.infoProduct .guia-tallas').appendTo('.infoProduct .selectionProduct .sku-selector-container')
+        setTimeout(function () {
+            //Abrir guía de tallas
+            $(".guia-tallas").click(function () {
+                $(".background-lightbox").show();
+            });
+            $(".background-lightbox").click(function () {
+                $(".background-lightbox").hide();
+            });
+            // Especificaciones y flotante en tablet
+            if ($("body").hasClass("imTablet")) {
+                $(".group.Caracteristicas").click(function () {
+                    if (!$("body.bigImg").length || $(window).width() < 769){
+                        $('table').fadeToggle();
+                    }
+                });
+                $(".bnnTel").click(function () {
+                    $('txtTel').fadeToggle();
+                });
+                $(".bnnEnvio").click(function () {
+                    $('txtEnvio').fadeToggle();
+                });
+                $(".bnnPago").click(function () {
+                    $('txtPago').fadeToggle();
+                });
+                $(".bnnCambio").click(function () {
+                    $('txtCambio').fadeToggle();
+                });
+            }
+            // Especificaciones y flotante en mobile
+            if ($("body").hasClass("imPhone")) {
+                $(".group.Caracteristicas").click(function () {
+                    if (!$("body.bigImg").length || $(window).width() < 769){
+                        $('table').fadeToggle();
+                    }    
+                });
+                $(".bnnTel").click(function () {
+                    $('txtTel').fadeToggle();
+                });
+                $(".bnnEnvio").click(function () {
+                    $('txtEnvio').fadeToggle();
+                });
+                $(".bnnPago").click(function () {
+                    $('txtPago').fadeToggle();
+                });
+                $(".bnnCambio").click(function () {
+                    $('txtCambio').fadeToggle();
+                });
+            }
+            //Cambio posición nombre producto en mobile
+            if ($("body").hasClass("imPhone")) {
+                $('.product .titleProduct').insertBefore(".boxImage");
+            }
+            //Controladores de cantidad
+            //Crear controladores de cantidad
+            var sumar = $(document.createElement("div"));
+            var restar = $(document.createElement("div"));
+            sumar.text("+");
+            restar.text("-");
+            sumar.addClass("control sumar");
+            restar.addClass("control restar");
+            $(".buyButton .buy-in-page-quantity").before(restar);
+            $(".buyButton .buy-in-page-quantity").after(sumar);
+            var titCantidad = $(document.createElement("h3"));
+            titCantidad.text("CANTIDAD");
+            $(".buyButton").prepend(titCantidad);
+            //Fin crear controladores de cantidad
+            //Asignar funcionalidad botones
+            //sumar
+            $(".sumar").click(function () {
+                var cantidadItem = $(".buy-in-page-quantity").attr("value");
+                cantidadItem = parseInt(cantidadItem);
+                cantidadItem++;
+                $(".buy-in-page-quantity").attr("value", cantidadItem);
+            });
+            //Fin sumar
+            //Restar
+            $(".restar").click(function () {
+                var cantidadItem = $(".buy-in-page-quantity").attr("value");
+                if (cantidadItem > 1) {
+                    cantidadItem = parseInt(cantidadItem);
+                    cantidadItem--;
+                    $(".buy-in-page-quantity").attr("value", cantidadItem);
+                }
+            });
+            //Fin restar
+            //Fin asignar funcionalidad botones
+            //Fin controladores de cantidad
+        }, 300);
+
+        //compartir en facebook
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+        /*FIJAR BOTON APP IOS*/
+        if (getCookie("customapp") || window.location.href.indexOf("customapp=") != -1){
+            $('html').css({"margin": "0", "height": "100%", "overflow":"hidden"});
+            $('body').addClass('entorno-app').css({"margin": "0", "height": "100%", "overflow":"hidden"});
+            $('.mainContent').css({"-webkit-overflow-scrolling": "touch", "height": "100%", "overflow":"auto"});
+        }
+        var paginador = localStorage.getItem('paginador'); //Obtenemos el valor del paginador de la categoría
+        
+        if ( paginador !== null && location.href.indexOf('idsku') == -1){
+            var href = $('.bread-crumb .last a').attr('href'); // Si existe el paginador, se lo agregamos al breadcrumb            
+            localStorage.removeItem('paginador');
+        }        
+        
+    }
+    return {init: init};
+}();
+
+function formatearPrecioProducto(){
+    var wrapper = $(".productPrice .skuBestPrice, .productPrice .skuListPrice");
+    wrapper.each(function() {
+        if ($(this).is(".formated"))
+            return;
+        var contentWrapper = $(this).text().replace(",", "-").split("-")[0];
+        $(this).text(contentWrapper);
+        $(this).addClass("formated");
+    })
+    /*wrapper.each(function() {
+        if ($(this).is(".formated")){
+            $(this).css('visibility', 'unset');
+            return;
+        }
+        var contentWrapper = $(this).text().replace(",", "-").split("-")[0];
+        $(this).text(contentWrapper);
+        $(this).addClass("formated");
+        $(this).css('visibility', 'unset');
+    });*/
+    // Ajustes en productos con oferta
+    if ($(".body_product").length) {updateDiscountPercentage();}
+}
+function ocultarColoresNoDisponibles(){
+    var coloresAOcultar = [];
+    skuJson.dimensionsMap.Color.forEach(function(color){
+        coloresAOcultar.push(
+            {'color' :color,
+            'qty' : skuJson.skus.map( v => v.dimensions.Color == color && v && v.available).filter(i => i).length == 0});
+    });
+    coloresAOcultar.forEach(function(valor){
+        valor.qty ? $('label[for='+$('[data-value='+valor.color+'].input-dimension-Color').attr('id')+']').css('display','none') : "";
+    });
+}
+$( document ).on('ajaxStop',function() {
+    //formatearPrecioProducto();
+});
+
+$(document).ready(function () {
+    if( typeof getUrlParameter('idsku') != "undefined"){
+        var idsku = parseInt(getUrlParameter('idsku'))
+        var skuSelected = skuJson.skus.filter( function(i){ return i.sku === idsku})[0];
+        $(".body_product .tittleProduct").html(skuJson.name+' - '+skuSelected.dimensions.Talla);
+    }
+    var categoriaAccesorios = [105,100,103,125,101,102,104];
+    categoriaAccesorios.forEach(function(datos2) {
+        if (vtxctx.categoryId == datos2) {
+            $(".body_product .tittleProduct").html(skuJson.name+' - '+skuJson.dimensionsMap.Talla);
+        }
+    });
+    //$('.contentProduct .boxImage').append('<div class="zoom-logo"></div>');
+    //$('#container-img').append('<div class="zoom-logo"></div>');
+   
+    removeNanDescuento();
+    formatearPrecioProducto();
+    funcionalidadesProduct.init();
+    popUp_Producto();
+    ClosePopUp_Producto();
+    $(window).on("skuDimensionChanged.vtex", function (event, productId, dimension, specification) {
+        //console.log("skuDimensionChanged.vtex");
+        if (dimension === "Color") {
+            if($('body').is('.idsku')){
+                var cartaColor = skuJson.skus.filter(function(i){
+                    return i.dimensions.Color == specification
+                })[0].dimensions['Carta Color'];
+                $('.item-dimension-Cartacolor select').val(cartaColor);
+                $('.item-dimension-Cartacolor select').change();
+            }
+            var dimensionTalla = $(".item-dimension-Talla");
+            dimensionTalla.find(".dimension-Talla").removeClass("checked sku-picked");
+            dimensionTalla.find(".input-dimension-Talla").removeClass("checked sku-picked").removeAttr("checked");
+        }
+        //formatearPrecioProducto();
+    });
+    /*$(window).on("skuSelected", function (event, productId, name) {
+        formatearPrecioProducto();
+    });*/
+    $(window).on("skuSelected.vtex", function (event, productId, sku) {
+        formatearPrecioProducto();
+       // var talla = $(".item-dimension-Talla").find("label.checked.sku-picked").html();
+        $(".body_product .tittleProduct").html(skuJson.name+' - '+sku.dimensions.Talla);
+    });
+    if ($(".body_product").length) {
+        // Formatear contenedor de descripción
+        $(".body_product").find(".group.Caracteristicas").first().append($("<i>").addClass("fas fa-plus"));
+        // Evento click descripción
+        if(!$("body.bigImg").length || $(window).width() < 769){
+            $(".specificationsProduct").parent().parent().off("click").click(function () {
+                if ($(this).find(".fa-plus").length) {
+                    $(this).find(".fa-plus").removeClass("fa-plus").addClass("fa-minus");
+                    $('.specificationsProduct table').show("fast");
+                } else if ($(this).find(".fa-minus").length) {
+                    $(this).find(".fa-minus").removeClass("fa-minus").addClass("fa-plus");
+                    $('.specificationsProduct table').hide("fast");
+                }
+                //$('.specificationsProduct table').slideToggle(1);
+            });
+        }
+        
+        // Reubicar descripción
+        if ($(".productDescription").length && $("#caracteristicas").find("table").length) {
+            var text = $(".productDescription").parent('h2');
+            $("#caracteristicas").find("table").prepend("<tr><td><h2 style='font-size: inherit;font-weight: normal;'>" + text.html().replace('<div class="productDescription">','').replace('</div>','') + "</h2></td></tr>");
+            text.remove();
+            $(".productDescription").remove();
+        }
+        $(".body_product .vitrineProduct-relacionados h2").text("TE PODRÍA INTERESAR").addClass("titulo_vitrina");
+
+        setTimeout(function () {
+            // Selector de cantidad
+            $(".body_product").find(".buyButton").children("div.control").remove();
+            $(".body_product").find(".buyButton").children(".buy-in-page-quantity").remove();
+            var cantidad_maxima = 7;
+            var select_aux = $("<select>").addClass('buy-in-page-quantity');
+            for (var ii = 1; ii <= cantidad_maxima; ii++) {
+                var option_aux = $('<option>').val(ii).text(ii);
+                select_aux.append(option_aux);
+            }
+            $(".body_product").find(".buyButton").find("h3").first().after(select_aux);
+        }, 310);
+    }
+    ocult()
+    removeNoStock()
+    if($(window).width()<600){
+        $('.contentProduct .boxImage').hide();
+        $('.imagenProductoMiniaturas').hide();
+        $('.contentProduct .boxImage').show();
+        carouselImagesProduct();
+    }
+    bannerAmese();
+    bannerAndreaSerna();
+    removeNanDescuento();
+    if($(".body_product").length){
+        if($(window).width() < 768){
+
+            if(!$(".ayuda-tallas").length){
+                $(".body_product .content-product>.col-md-5").insertBefore(".buyButton").removeClass("col-md-5").addClass("ayuda-tallas");
+            }
+            if(!$(".te-ayudamos").length){
+                var contentHelp='<div class="boton-fixed-movil"><div class="te-ayudamos">¿Te ayudamos?</div></div>';
+                $(contentHelp).insertBefore(".buy-in-page-button");
+                $(".boton-fixed-movil").append($(".buy-in-page-button"));
+                var contentHelpInt='<div class="te-ayudamos-content" style="display: none;"><p>¿Te ayudamos? <span class="close">x</span></p>' +
+                    '<div class="content-botones-ayuda">' +
+                    '<div class="llama"><img class="icon-ayuda" src="/arquivos/Icono-teléfono-50x50.png"><span>Llámanos</span></div>' +
+                    '<div class="whatsapp"><img class="icon-ayuda" src="/arquivos/Icono-whatsapp-50x50.png"><span>Whatsapp</span></div>' +
+                    '<div class="chat"><img class="icon-ayuda" src="/arquivos/icono_chat_prod_mobile.png"><span>Chat</span></div>' +
+                    '</div></div>';
+                $(".boton-fixed-movil").append(contentHelpInt);
+            }
+
+            $(document).on("click","li.skuList.item-dimension-Color label",function(){
+                tallasSelect();
+                controlMyTallasAvailable();
+            });
+            $(document).on("change",".myTallas",function(){
+                var valor=$(this).val();
+                $("li.select.skuList.item-dimension-Talla input[data-value="+valor+"]").click();
+            });
+
+            $(document).on("click",".boton-fixed-movil .te-ayudamos",function(){
+                $(".te-ayudamos-content").show();
+                $(".buy-in-page-button").addClass("ocultar");
+                $(".te-ayudamos").addClass("ocultar");
+                $("#oct8ne-viewer-wrapper").show();
+            })
+            $(document).on("click",".te-ayudamos-content span.close",function(){
+                $(".te-ayudamos-content").hide();
+                $(".buy-in-page-button").removeClass("ocultar");
+                $(".te-ayudamos").removeClass("ocultar");
+                $("#oct8ne-viewer-wrapper").hide();
+            })
+            $(document).on("click",".content-botones-ayuda .whatsapp",function(){
+                $(".te-ayudamos-content").hide();
+                $(".buy-in-page-button").removeClass("ocultar");
+                $(".te-ayudamos").removeClass("ocultar");
+                $("#popup-callme .modalWrap").show();
+            })
+            $(document).on("click",".content-botones-ayuda .llama",function(){
+                $(".te-ayudamos-content").hide();
+                $(".buy-in-page-button").removeClass("ocultar");
+                $(".te-ayudamos").removeClass("ocultar");
+                $('#popup-telefono .popup-tf').show();
+                $('#popup-telefono').addClass("active");
+            })
+            $(document).on("click",".content-botones-ayuda .chat",function(){
+                $(".te-ayudamos-content").hide();
+                $(".buy-in-page-button").removeClass("ocultar");
+                $(".te-ayudamos").removeClass("ocultar");
+                $("#livechat-wrapper").click();
+            })
+
+        }
+        // selectOneSku();
+        tallasSelect();
+    }
+
+    ajustarPrecioVitrinas();
+    ajustesTarjetaRegalo();
+
+   
+});
+
+$(window).load(function(){
+    controlMyTallasAvailable();
+    removeNanDescuento();
+    colorUnico();
+    /*if($("body.bigImg").length && $(".thumbImage li").length < 2 && $(window).width() > 768){
+        $(".thumbImage").hide();
+        $(".productNew .mainContent .mainProduct .boxImage").removeClass("col-md-7").addClass("col-md-8");
+    }*/
+})
+
+function colorUnico(){
+    ocultarColoresNoDisponibles();
+    $(".sku-selector-container .topic.Color .item-dimension-Color span.group_0").each(function() {
+        var label = $(this).find("label");
+        if (label.length > 1) {
+            $(".sku-selector-container .topic.Color").addClass('Show');
+        }
+    });
+}
+
+function bannerAmese(){
+    if (skuJson.productId == 2016782){
+        if ($("body").width() > 425) {
+            $('.mainContent').prepend('<img style="width:100%;height:auto;max-width:1500px;display:block;margin:0 auto;padding-bottom: 15px;padding-top: 15px;" src="https://patprimo.vteximg.com.br/arquivos/AMESE_DESKTOP.jpg" alt="AMESE"/>');
+        }else{
+            $('.mainContent').prepend('<img style="width:100%;height:auto;max-width:1200px;display:block;margin:0 auto;padding-bottom: 15px;padding-top: 15px;" src="https://patprimo.vteximg.com.br/arquivos/AMESE_MOBILE.jpg" alt="AMESE"/>');
+        }
+    }
+}
+
+function bannerAndreaSerna(){
+    var productIds = [2017103,2017102,2017101,2017100,2017099,2017098,2017097,2017045];
+    if ( productIds.indexOf(skuJson.productId) !== -1 ){
+        if ($("body").width() > 425) {
+            $('.mainContent').prepend('<a href="/mujer/714?PS=24&map=c,productClusterIds&O=OrderByReleaseDateDESC"><img style="width:100%;height:auto;max-width:1500px;display:block;margin:0 auto;padding-bottom: 15px;padding-top: 15px;" src="https://patprimo.vteximg.com.br/arquivos/BannerAndrea-Serna-Desktop.jpg" alt="Andrea Serna"/></a>');
+        }else{
+            $('.mainContent').prepend('<a href="/mujer/714?PS=24&map=c,productClusterIds&O=OrderByReleaseDateDESC"><img style="width:100%;height:auto;max-width:1200px;display:block;margin:0 auto;padding-bottom: 15px;padding-top: 15px;" src="https://patprimo.vteximg.com.br/arquivos/BannerAndrea-Serna-Mobile.jpg" alt="Andrea Serna"/></a>');
+        }
+    }
+}
+
+function ajustesTarjetaRegalo(){
+    if(skuJson.productId == "2006573"){
+        $("body").addClass("tarjeta_regalo");
+    }
+}
+
+function ajustarPrecioVitrinas(){
+    $(".vitrineProduct-podriaInteresar .prices .productList, .vitrineProduct-podriaInteresar .prices .bestPrice, .vitrineProduct-podriaInteresar .prices .uniquePrice").each(function(){
+        $(this).text("$" + funcionalidadesGeneralesNew.formatearMoneda($(this).text().replace('$', '').replace(' ', '').replace(/[,]+/g, '').replace(/[.]+/g, '') / 100, 0, '.', ','));
+    });
+}
+
+function printRelatedProducts(product) {
+
+    // Se obtiene el hiddenId del producto y lo retornamos como un string para poderlo usar
+    var divContainer = $("#vitrinaProducto_" + product.productId);
+    var sizeParent = divContainer.find(".relatedSizeContainer");
+    var colorParent = divContainer.find(".relatedColorContainer");
+    var colorsArray = "";
+    var sizeArray = "";
+    var tallas = "";
+
+    //Se obtiene del objeto la talla, y se crea el arreglo correspondiente
+    var sizeArray = "";
+    for (var i = 0; i < product.dimensionsMap.Talla.length; i++) {
+        // if( sizeAvailable[product.dimensionsMap.Talla[i]] != undefined ){
+        sizeArray += "<div class='relatedSize relatedSize_" + product.productId + "'>" + product.dimensionsMap.Talla[i] + "</div>";
+        // }
+    }
+
+    for (var i = 0; i < product.dimensionsMap["Color"].length; i++) {
+        colorsArray += "<div class='relatedColor relatedColor_" + product.productId + "' style='background-image:url(/arquivos/" + product.dimensionsMap["Color"][i] + ".jpg')>" + product.dimensionsMap["Color"][i] + "</div>";
+        divContainer.attr('id', product.productId);
+    }
+
+    $(colorParent).append(colorsArray);
+    $(sizeParent).append(sizeArray);
+
+    if ($("body").hasClass("body_product")) {
+        $(colorParent).html("");
+        if (product.dimensionsMap["Color"].length > 1) {
+            var span_colores = $("<span>").addClass("span_colores").text('+ ' + product.dimensionsMap["Color"].length + ' COLORES')
+            $(colorParent).append(span_colores);
+        }
+    }
+
+    var prodViejo = $("#" + product.productId + ' .oldPriceProd').text();
+    var prodNuevo = $("#" + product.productId + ' .priceProd').text();
+    if (prodViejo == prodNuevo) {
+        $('.oldPriceProd').remove();
+        $('.priceProd').css("color", "#000");
+        $('.priceProd').css("font-family", "alegreyasans-medium");
+    }
+
+    if ($('.vitrineProduct-podriaInteresar').length) {
+        var span = $("<span>").addClass("span_colors").text("+ " + product.dimensionsMap["Color"].length + " Colores");
+        divContainer.find('.vitrineProduct-podriaInteresar').find('.relatedColorContainer').html("").append(span);
+    }
+
+    $(".relatedColor_" + product.productId).click(function () {
+        if (!$(this).hasClass('selectedColor')) {
+
+            var colorActual = $(this).text();
+
+            $(this).addClass('selectedColor').siblings().removeClass('selectedColor');
+
+            var selectedSize = $(sizeParent).find(".selectedSize").first().text();
+            var firstSkuAvailable;
+            var firstSku;
+            var imageSku;
+
+            sizeArray = "";
+
+            $(sizeParent).empty(); // Esta línea me borra el contenido de tallas cada vez que se cambia el color
+
+            var skus = [];
+
+            for (var i = 0; i < product.skus.length; i++) {
+                skus.push(product.skus[i].dimensions.Talla);
+            }
+
+            skus = skus.sort(function (a, b) {
+                return a - b
+            });
+            skus = deleteDuplicates(skus);
+            var arrayProductSku = [];
+            for (var j = 0; j < skus.length; j++) {
+                for (var i = 0; i < product.skus.length; i++) {
+                    if (product.skus[i].dimensions.Talla == skus[j]) {
+                        arrayProductSku.push(product.skus[i])
+                    }
+                }
+            }
+            for (var i = 0; i < arrayProductSku.length; i++) {
+                var currentSku = arrayProductSku[i];
+                if (currentSku.dimensions["Color"] == colorActual) {
+                    if (currentSku.available && typeof firstSkuAvailable === "undefined") {
+                        firstSkuAvailable = currentSku;
+                    }
+                    if (typeof firstSku === "undefined") {
+                        firstSku = currentSku;
+                    }
+
+                    var currentSizeDiv = $("<div class='relatedSize relatedSize_" + product.productId +
+                        (currentSku.dimensions["Talla"] == selectedSize ? " selectedSize " : " ") +
+                        ( !currentSku.available ? " unavailable " : " ") +
+                        "' >" + currentSku.dimensions["Talla"] + "</div>");
+
+                    function handleOnClickSizeEvent(passedInElement) {
+                        return function (event) {
+                            cambiarTallaConColorSeleccionado(passedInElement);
+                        };
+                    };
+                    currentSizeDiv.on("click", handleOnClickSizeEvent(currentSku));
+
+                    $(sizeParent).append(currentSizeDiv);
+
+                    if (imageSku != "undefined") {
+                        imageSku = currentSku.image;
+                    }
+                }
+            }
+
+            /*$(this).parent().parent().find('.relatedSize').each(function(){
+             console.log("item");
+             });*/
+
+            $(this).addClass('activeColor').siblings().removeClass('activeColor');
+
+            //CAMBIO DE IMG DEPENDIENDO DE EL COLOR:
+
+            $("#" + product.productId + " a img").attr("src", imageSku);
+
+            //CAMBIO DE IMG DEPENDIENDO DE EL COLOR PARA EL LIGHTBOX DE "VER IMAGEN":
+
+            $("#" + product.productId + " .lightboxImg img").attr("src", imageSku);
+
+        }
+        cambiarTalla();
+        var selSizeChange = $(".relatedSize_" + product.productId + '.selectedSize');
+        selSizeChange.removeClass("selectedSize");
+
+        //formatearPrecioProducto();
+    });
+
+    function deleteDuplicates(ar) {
+        var ya = false, v = "", aux = [].concat(ar), r = Array();
+        for (var i in aux) { //
+            v = aux[i];
+            ya = false;
+            for (var a in aux) {
+                if (v == aux[a]) {
+                    if (ya == false) {
+                        ya = true;
+                    }
+                    else {
+                        aux[a] = "";
+                    }
+                }
+            }
+        }
+        for (var a in aux) {
+            if (aux[a] != "") {
+                r.push(aux[a]);
+            }
+        }
+        return r;
+    }
+
+
+    function cambiarTallaConColorSeleccionado(sku) {
+        //var currentId = (product.productId);
+        var newName = (sku.skuname);
+        var newPrice = (sku.bestPriceFormated);
+        //var oldPrice = (sku.listPriceFormated);
+        //var newURL = ("http://www.patprimo.com/checkout/cart/add?sku=" + sku.sku + "&qty=" + "1" + "&seller=1&redirect=false&sc=1");
+        $("#" + product.productId + " .midLevel .nameProd a").html(newName);
+        $("#" + product.productId + " .midLevel .priceProd").html(newPrice);
+
+        function cambiarUrlButton() {
+            var newQt = 1;
+            var newURL = ("http://www.patprimo.com/checkout/cart/add?sku=" + sku.sku + "&qty=" + newQt + "&seller=1&redirect=false&sc=1");
+            //PRUEBA URL
+            var options = {
+                url: newURL,
+                type: "get",
+                success: function (data) {
+                    vtexjs.checkout.getOrderForm().done(function (orderForm) {
+                        crearCarritoLightBox(orderForm, sku.sku);
+                        //$(".mainCartContainer").show();
+                        //console.log("se ha agregado al carrito");
+                    });
+                }
+            }
+            jQuery.ajax(options);
+        };
+
+        $("#" + product.productId + " .buy-button-normal").click(function () {
+            cambiarUrlButton();
+        });
+    };
+    function cambiarTalla() {
+        $(".relatedSize_" + product.productId).click(function () {
+            if (!$(this).hasClass('selectedSize')) {
+                //var size = $(this).text();
+                $(this).addClass('selectedSize').siblings().removeClass('selectedSize');
+            }
+        });
+    }
+}
+
+function updateDiscountPercentage(){
+    // Ajustes en productos con oferta
+    if ($(".body_product").length) {
+        if ($(".productPrice").find(".skuListPrice").length) {
+            var oldPrice = parseFloat($(".productPrice").find(".skuListPrice").text().trim().substr(1).replace(".", ""));
+            var newPrice = parseFloat($(".productPrice").find(".skuBestPrice").text().trim().substr(1).replace(".", ""));
+            var descuento = parseInt(100 - (newPrice * 100) / oldPrice);
+            if (descuento > 0 && descuento < 100) {
+                var div_descuento_porcentaje = $("<div>").addClass("tagDescuento");
+                $("<p>").addClass("descuentoPorcentaje").text("-"+descuento+"%").appendTo(div_descuento_porcentaje);
+                $('.descuentoPorcentaje').remove()
+                if(!$('#container-img .descuentoPorcentaje').length && !$("#container-img").parent().find('.descuentoPorcentaje').length){
+                    if(!$('#container-img').parent().is('.imgs-carousel'))
+                        $("#container-img").prepend(div_descuento_porcentaje);
+                    else
+                        $(div_descuento_porcentaje).insertBefore(".boxImage");
+                }
+            }
+            /*var strong = $('.descricao-preco').children('.valor-de.price-list-price').children('strong');
+            $('.descricao-preco').prepend(strong);
+            $('.descricao-preco').children('em').first().css("display", "none");*/
+        }
+    }
+}
+
+function findVal(object, key) {
+    var value;
+    Object.keys(object).some(function(k) {
+        if (k === key) {
+            value = object[k];
+            return true;
+        }
+        if (object[k] && typeof object[k] === 'object') {
+            value = findVal(object[k], key);
+            return value !== undefined;
+        }
+    });
+    return value;
+}
+
+function ocult(){
+    var object =  dataLayer;
+    var categoria = findVal(object, 'productCategoryName');
+    var departmentId = findVal(object, 'productDepartmentId');
+
+    if(categoria == "Accesorios"){
+        $('th.name-field.Instrucciones-de-lavado').parent().hide()
+    }
+    if(departmentId != 1 && departmentId != 2 && departmentId != 67){
+        $('.guia-tallas').hide();
+    }
+}
+
+function popUp_Producto() {
+    $(document).on('click', '.contentProduct .boxImage.imgs-carousel .owl-carousel img', function () {
+        $('.modal-Producto').addClass('active');
+        $('.modal-Producto .modalWrap').css('display', 'Block');
+        carouselImagesProductPopUp();
+    });
+    $(document).on('click', '.contentProduct .boxImage.imgs-carousel #zoom-logo', function () {
+        $('.modal-Producto').addClass('active');
+        $('.modal-Producto .modalWrap').css('display', 'Block');
+        carouselImagesProductPopUp();
+
+        var imgZoomIndex = false;
+
+        $('#zoom-logo + .owl-carousel .owl-dots .owl-dot').each(function(index) {
+            if($(this).hasClass('active')) {
+                imgZoomIndex = index;
+            }
+        });
+
+        $('.zoom-mobile .owl-carousel li').each(function (index) {
+            if(imgZoomIndex == index){
+                $(this).css('display','block');
+            }else{
+                $(this).css('display','none');
+            }
+        });
+    });
+    $(document).on('click', '.contentProduct .boxImage.imgs-carousel #zoom-logo + .owl-carousel .owl-item img ', function () {
+        $('.modal-Producto').addClass('active');
+        $('.modal-Producto .modalWrap').css('display', 'Block');
+        carouselImagesProductPopUp();
+        
+        var imgZoomIndex = false;
+
+        $('#zoom-logo + .owl-carousel .owl-dots .owl-dot').each(function(index) {
+            if($(this).hasClass('active')) {
+                imgZoomIndex = index;
+            }
+        });
+
+        $('.zoom-mobile .owl-carousel li').each(function (index) {
+            if(imgZoomIndex == index){
+                $(this).css('display','block');
+            }else{
+                $(this).css('display','none');
+            }
+        });
+    });
+    $(document).on('click', '.contentProduct .boxImage #container-img img', function () {
+        $('.modal-Producto').addClass('active');
+        $('.modal-Producto .modalWrap').css('display', 'Block');
+        ImagesProductPopUp();
+    });
+    $(document).on('click', '.contentProduct .boxImage #container-img .zoom-logo', function () {
+        $('.modal-Producto').addClass('active');
+        $('.modal-Producto .modalWrap').css('display', 'Block');
+        ImagesProductPopUp();
+    });
+
+}
+
+function ImagesProductPopUp() {
+    console.log('ImagesProductPopUp');
+    var html_imgs_one = '<ul class="owl-carousel-popup" style="display: block;">';
+    $('.boxImage #container-img img').each(function (index) {
+        html_imgs_one += '<li class="zoom">';
+        var src = $(this).attr('src').replace('-398-458', '-1500-1800');
+        html_imgs_one += '<img src="' + src + '" class="media" />'
+        html_imgs_one += '<li/>';
+    });
+    html_imgs_one += '<ul/>';
+    $('.modal-Producto.active .zoom-mobile').empty().html(html_imgs_one);
+    $('.boxImage .owl-carousel').hide();
+    zoom();
+}
+
+function ClosePopUp_Producto() {
+    $(document).on('click', '.modal-Producto.active .modalWrap .close', function () {
+        $('.modal-Producto').removeClass('active');
+        $('.modal-Producto .modalWrap').css('display', 'none');
+    });
+}
+
+function carouselImagesProductPopUp(){
+    console.log('carouselImagesProductPopUp');
+    var html_imgs = '<ul class="owl-carousel-popup" style="display: block;">';
+    $('.boxImage .owl-carousel .active img').each(function (index) {
+        html_imgs += '<li class="zoom">';
+        var src = $(this).attr('src').replace('-398-458', '-1500-1800');
+        var image = '<img src="' + src + '" class="media" />';
+        html_imgs += image + '</li>';
+    });
+    html_imgs += '</ul>';
+    $('.modal-Producto.active .zoom-mobile').empty().html(html_imgs);
+    $('#container-img').hide();
+    if ($('.thumbImage .imagenProductoMiniaturas li img').length > 1) {
+        var html_imgs = '<ul class="owl-carousel">';
+        var cuenta = 0;
+        $('.thumbImage .imagenProductoMiniaturas li img').each(function (index) {
+            cuenta = cuenta + 1;
+            html_imgs += '<li class="zoom zoomimg-'+cuenta+'">';
+            var src = $(this).attr('src').replace('-135-162', '-1500-1800');
+            var image = '<img src="' + src + '" class="media" />';
+            html_imgs += image + '</li>';
+        });
+        html_imgs += '</ul>';
+        $('.modal-Producto.active .zoom-mobile').html(html_imgs);
+        /*if ($.fn.owlCarousel) {
+            var $fullbanner = $('.modal-Producto.active .zoom-mobile ul');
+            if ($fullbanner.length) {
+                $fullbanner.owlCarousel({
+                    items: 1,
+                    singleItem: true,
+                    autoPlay: true,
+                    loop: true,
+                    stopOnHover: true,
+                    nav: true,
+                    autoHeight: true,       
+                });
+            }
+        }*/
+        $('.thumbImage').hide();
+    }
+    zoom();
+    $('.thumbImage').clone().appendTo('#Popup-Producto .modalWrap .zoom-mobile');
+    if($('.zoom-mobile .thumbImage').find('li').length > 0){
+        var cuentali = 0;
+        $('.zoom-mobile .thumbImage .imagenProductoMiniaturas li').each(function (index) {
+            cuentali = cuentali + 1;
+            $(this).addClass("zoomimg-"+cuentali+"");
+        })
+        
+    }
+    $(document).on("click", ".zoom-mobile .thumbImage .imagenProductoMiniaturas li", function () {
+        var classes = this.classList;
+        //console.log(classes);
+        $('.zoom-mobile .owl-carousel li').each(function (index) {
+            for (var i=0,len=classes.length; i<len; i++){
+                //console.log(this);
+                if($(this).hasClass(classes[i])){
+                    $(this).css('display','block');
+                    //console.log(this);
+                }else{
+                    $(this).css('display','none');
+                }
+            }
+        });
+        
+        /*var numcuenta = 0;
+        var clickthumb = $(this);
+        //console.log(clickthumb);
+        $('.zoom-mobile .owl-carousel li').each(function (index) {
+            numcuenta = numcuenta +1;
+            var imgowl = $(".zoom-mobile .owl-carousel li.zoomimg-"+numcuenta+"");
+            //console.log(imgowl);            
+            //if(imgowl != clickthumb ){
+                $(imgowl).css('display','block');
+                $(".zoom-mobile .owl-carousel li:not(.zoomimg-"+numcuenta+")").css('display','none');
+            //}          
+        });*/
+    });
+    
+}
+
+function removeNoStock(){
+    $('body.productNew .Color .item-dimension-Color span label.item_unavaliable').remove()
+}
+
+
+function carouselImagesProduct(){
+    if ($('.thumbImage .imagenProductoMiniaturas li img').length > 1) {
+        var html_imgs = '<div id="zoom-logo"></div>';
+        html_imgs += '<ul class="owl-carousel">';
+        $('.thumbImage .imagenProductoMiniaturas li').each(function (index) {
+            html_imgs += '<li>';
+            var src = $(this).find('a img').attr('src').replace('-135-162', '-398-458');
+            var image = '<img src="' + src + '" class="sku-rich-image-main img-responsive"/>';
+            html_imgs += image + '</li>';
+        });
+        html_imgs += '</ul>';
+        var img_inicial = $('#container-img').clone();
+        $('.contentProduct .boxImage').html(html_imgs).addClass('imgs-carousel').append(img_inicial);
+        $('#container-img').hide();
+        //$('#container-img').append('<div id="zoom-logo"></div>');
+        if ($.fn.owlCarousel) {
+            var $fullbanner = $('.contentProduct .boxImage ul');
+            if ($fullbanner.length) {
+                $fullbanner.owlCarousel({
+                    items: 1,
+                    singleItem: true,
+                    autoPlay: true,
+                    loop: true,
+                    stopOnHover: true,
+                    nav: true,
+                    autoHeight: true
+                });
+            }
+        }
+        $('.thumbImage').hide();
+    }
+}
+
+function removeNanDescuento(){
+    $(".descuentoPorcentaje").each(function(){
+        if($(this).text() == 'NaN') $(this).remove();
+    })
+}
+
+function selectOneSku(){
+    $("li.select.skuList.item-dimension-Color label").first().click();
+
+    $("li.select.skuList.item-dimension-Talla label:not(.item_unavaliable)").first().click();
+    $("li.select.skuList.item-dimension-Color span").removeClass("active");
+    $("li.select.skuList.item-dimension-Talla span").removeClass("active");
+
+}
+
+function tallasSelect(){
+    
+    $(".myTallas").remove();
+    var content='<select class="myTallas">';
+    $("li.select.skuList.item-dimension-Talla span input").each(function(){
+        var idTa=$(this).attr("id");
+        var valueTa=$(this).data("value");
+        var disabled=false;
+        if ($(this).hasClass("item_unavaliable")){disabled=true;}
+        content+='<option value="'+valueTa+'" id="'+idTa+'"';
+        if(disabled) content+=' disabled=disabled'
+        content+='>'+valueTa+'</option>';
+    })
+    content+='</select>';
+    $("li.select.skuList.item-dimension-Talla").append(content);
+    $("li.select.skuList.item-dimension-Talla span").hide();
+}
+
+function controlMyTallasAvailable(){
+    $(".myTallas option").each(function(){
+        if($(this).hasClass("disabled")) $(this).attr("disabled","disabled");
+    })
+}
+
+function removeNanDescuento(){
+    $(".descuentoPorcentaje").each(function(){
+        if($(this).text() == 'NaN') $(this).remove();
+    })
+}
+
+function getUrlParameter(sParam) {
+    var sPageURL = window.location.search.substring(1),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+        }
+    }
+}

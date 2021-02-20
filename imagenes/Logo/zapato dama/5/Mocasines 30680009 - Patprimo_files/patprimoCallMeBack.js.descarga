@@ -1,0 +1,104 @@
+function phonenumber(text) {
+    var phoneno = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    return !!text.match(phoneno) && text
+}
+var callMeBack = function() {
+    var init = function() {
+        showHideForm()
+    }
+        , showHideForm = function() {
+        $(".btn-tel, .back-btn").click(function() {
+            $("#btncallme").toggleClass("show"),
+                $(".labels").toggleClass("show"),
+                $(".form-group").toggleClass("show")
+        })
+    }
+        , showSendInfo = function(message, ok) {
+        var elm = $(".response-msg");
+        message && (elm.html(message),
+            elm.addClass("show-msg"),
+        ok && setTimeout(function() {
+            $(".btn-tel").click(),
+                $(".form-callme .btFormEnviar").attr({
+                    disabled: "disabled",
+                    onclick: "#"
+                })
+        }, 3e3))
+    }
+        , sendInfo = function() {
+        event.preventDefault();
+        console.log("enviando");
+        //var phoneField = $("#callback_phone")
+        if ($(window).width() < 768){
+            var phoneFieldMovil=$(".active").find("#callback_phone_movil")
+                , phonedMovil = phoneFieldMovil[0].value;
+            if (phonedMovil) {
+                var datosCbMovil={};
+                datosCbMovil.Telefono=phonedMovil;
+                var urlCB = "/api/dataentities/CB/documents";
+                $.ajax({
+                    headers: {
+                        "Accept": "application/vnd.vtex.ds.v10+json",
+                        "Content-Type": "application/json"
+                    },
+                    data: JSON.stringify(datosCbMovil),
+                    type: 'PATCH',
+                    url: urlCB,
+                    success: function (data, textStatus, responseText) {
+                        console.log(data);
+                        $("#callmebackOk_movil").show();
+                        $("#callback_phone_movil").val("");
+                    },
+                    error: function (data, textStatus, responseText) {
+                        console.log('error:'+textStatus);
+                        $("#callmebackKo_movil").show();
+                        $("#callback_phone_movil").val("");
+                    }
+                });
+            } else
+                showSendInfo("Ingresa un nÃºmero vÃ¡lido")
+
+        }else{
+            var phoneField = $(".active").find("#callback_phone")
+                , phone = phoneField[0].value;
+            if (phone) {
+                var datosCb={};
+                datosCb.Telefono=phone;
+                var urlCB = "/api/dataentities/CB/documents";
+                $.ajax({
+                    headers: {
+                        "Accept": "application/vnd.vtex.ds.v10+json",
+                        "Content-Type": "application/json"
+                    },
+                    data: JSON.stringify(datosCb),
+                    type: 'PATCH',
+                    url: urlCB,
+                    success: function (data, textStatus, responseText) {
+                        console.log(data);
+                        $("#callmebackOk").show();
+                        $(".numberInput").val("");
+                    },
+                    error: function (data, textStatus, responseText) {
+                        console.log('error:'+textStatus);
+                        $("#callmebackKo").show();
+                        $(".numberInput").val("");
+                    }
+                });
+            } else
+                showSendInfo("Ingresa un nÃºmero vÃ¡lido")
+        }
+
+    };
+    return {
+        init: init,
+        sendInfo: sendInfo,
+        showSendInfo: showSendInfo
+    }
+}();
+$(document).ready(function() {
+    callMeBack.init();
+    $(document).on("click","#popup-callme .close",function(){
+        $("#callmebackOk").hide();
+        $("#callmebackKo").hide();
+    })
+});

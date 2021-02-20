@@ -1,0 +1,81 @@
+
+#imgCard{
+    width:95%;
+    height: 70%;
+}
+
+#imgCard:hover{
+    width:100%;
+    height: 75%;
+    transition: 1s;
+    background: #E9E9E9;
+}
+
+#containerCard{
+    width: 33%;
+    height: 420px; 
+    float: left;
+}
+
+#cardMarca{
+    float: left;
+    width: 60%;
+    
+}
+
+#cardPrecio{
+    
+    float: right;
+    width: 18%;
+    
+}
+
+#formulario1{
+    background-color: #E8E8E8;
+    text-align: center;
+    width: 50%;
+    border: 2px solid green;
+}
+
+#titleGeneral{
+    text-align: center;
+}
+
+
+#favoritos:hover{
+    
+    width: 20px;
+    height: 20px;
+    transform: rotate(20deg) scale(1.5);
+    transition: 0.5s;
+    transform: rotate(15deg) scale(3);
+    transform: translateX(50px);
+    transform: translateZ(-20px);
+    transform: skew(10deg);
+    
+}
+
+#carrito:hover{
+    width: 20px;
+    height: 20px;
+    transform: rotate(20deg) scale(1.5);
+    transition: 0.5s;
+    transform: rotate(15deg) scale(3);
+    transform: translateX(50px);
+    transform: translateZ(20px);
+    transform: skew(10deg);
+}
+#papelera{
+    width: 20px;
+    height: 20px;
+}
+
+
+@media (max-width:600px){
+    #containerCard{
+        width: 95%;
+        height: auto;
+        float: left;
+        
+    }
+}

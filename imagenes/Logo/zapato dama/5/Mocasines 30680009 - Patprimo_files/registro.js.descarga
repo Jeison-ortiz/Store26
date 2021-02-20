@@ -1,0 +1,694 @@
+var ipResponse;
+$(document).ready(function() {
+    /*if (document.URL.indexOf('https://www.patprimo.com/registro') == 0) {        
+        window.location.href = 'https://www.patprimo.com/registro/tienda';    
+    }*/
+    switch (document.URL) {
+        case "https://www.patprimo.com/registro":
+            window.location.href = 'https://www.patprimo.com/registro/tienda'; 
+            break;
+        case "https://www.patprimo.com/registro/tienda":
+          break;
+        case "https://www.patprimo.com/registro/actualizacion":
+            break;
+    }
+    $.getJSON("https://api.ipify.org?format=json", function(data) {
+        ipResponse = data.ip;
+    });
+    formRegistroUtils.init();
+    validarNum();
+});
+
+function validarNum(){
+    $(".num").on("keypress keyup blur",function (event) {    
+       $(this).val($(this).val().replace(/[^\d].+/, ""));
+        if ((event.which < 48 || event.which > 57)) {
+            event.preventDefault();
+        }
+    });    
+}
+
+var errorLog = {
+    log: function(obj) {
+        obj.date = new Date().toISOString();
+        obj.url = window.location.href;
+        obj.paramsAux = navigator.userAgent;
+        var request = {
+            crossDomain: true,
+            async: true,
+            cache: false,
+            url: "/api/dataentities/EL/documents/",
+            data: JSON.stringify(obj),
+            type: "PUT",
+            headers: {
+                "content-type": "application/json"
+            }
+        };
+        $.ajax(request);
+    },
+    testError: function() {
+        $.ajax({
+            crossDomain: true,
+            async: false,
+            url: '/api/dataentities/CL/search?_fields=id',
+            type: 'GET',
+            cache: false,
+            headers: {
+                "content-type": "application/json"
+            },
+            success: function(data) {},
+            error: function(jqXHR, textStatus, errorThrown) {
+                errorLog.log({
+                    function: arguments.callee.name,
+                    file: "registro.js",
+                    params: "TEST-BORRAR",
+                    paramsAux: navigator.userAgent,
+                    ajax_jqxhr: jqXHR,
+                    ajax_textstatus: textStatus,
+                    ajax_errorthrown: errorThrown
+                });
+            }
+        });
+    }
+}
+var formRegistroUtils = {
+    init: function() {
+        if ($("body").hasClass("registro-web")) { // Registro web
+            formRegistroUtils.initForm($("body>#landing-registro"), "registro")
+        } else if ($("body").hasClass("registro-actualizacion")) { // Registro actualizacion
+            formRegistroUtils.initForm($("body>#landing-registro"), "actualizacion")
+        } else if ($("body").hasClass("registro-tienda")) { // Registro tienda (cliente offline)
+            formRegistroUtils.initForm($("body>#landing-registro"), "tienda")
+        }
+        if ($("footer").find(".registro").length) { // Registro footer
+            if ($(window).width() > 768) {
+                formRegistroUtils.initForm($("footer .registro"), "registro")
+            } else {
+                formRegistroUtils.initForm($(".footer-mobile .registro"), "registro")
+            }
+        }
+        if ($(".popUpDesc.registro").length) { // Registro popup
+            formRegistroUtils.initForm($(".popUpDesc.registro"), "registro")
+        }
+    },
+    initForm: function(container, type) {
+        registroUtils.displayErrorMsg('Ha ocurrido un error al generar el calendario');
+        registroUtils.rellenarSelectsFecha();
+        registroUtils.displayErrorMsg('');
+        $(container).find("form #registro").click(function(e) {
+            $(this).attr("disabled", "disabled");
+            e.preventDefault();
+            setTimeout(function() {
+                formRegistroUtils.registroCliente(container, type);
+            }, 200);
+        });
+    },
+    registroCliente: function(container, type) {
+        formRegistroUtils.animateRegistro(true);
+        registroUtils.displayErrorMsg('');
+        var form = $(container).find("form").first();
+        form.find("[required]").click(function() {
+            $(this).removeClass("border-red");
+        });
+        form.find(".border-red").removeClass("border-red");
+        var cliente = registroUtils.createClientObj(form);
+        var codigo_descuento = "";
+        switch (type) {
+            case "tienda":
+                cliente.hasPromoClienteOffline = true;
+                codigo_descuento = "TIENDAPP";
+                break;
+            case "actualizacion":
+                cliente.hasPromoClienteActualizacion = true;
+                codigo_descuento = "CLIENTEPP";
+                break;
+            case "registro":
+            case "footer":
+            case "popup":
+                cliente.hasPromoClienteWeb = true;
+                codigo_descuento = "REGISTROPP";
+                break;
+            default:
+                break;
+        }
+        if (!registroUtils.validateClient(cliente) || !formRegistroUtils.validateForm(form)) { // Debe rellenar los campos obligatorios
+            formRegistroUtils.validateForm(form);
+            registroUtils.enableSubmitButton();
+            return false;
+        }
+        clienteUtils.getClienteByCedula(cliente.document, function(dataClientCedula) {
+            var userDocumentAlreadyHasPromo = false;
+            for (var a = 0; a < dataClientCedula.length; a++) {
+                delete cliente.ip;
+                if (clienteUtils.hasPromo(dataClientCedula[a], type)) {
+                    userDocumentAlreadyHasPromo = true;
+                }
+            }
+            clienteUtils.getClienteByEmail(cliente.email, function(dataClient) {
+                var who = {
+                    "email": cliente.email
+                };
+                if (dataClient.length > 0) {
+                    delete cliente.ip;
+                    var who = {
+                        "id": dataClient[0].id
+                    };
+                    if (type == "registro") {
+                        // Desde registro no se permite actualización de datos.
+                        registroUtils.displayErrorMsg('EL CLIENTE YA ESTÁ REGISTRADO');
+                        registroUtils.enableSubmitButton();
+                        formRegistroUtils.animateRegistro(false);
+                        return false;
+                    }
+                    if (clienteUtils.hasPromo(dataClient[0], type)) {
+                        // Si ya existia el cliente y ya se estaba beneficiando de la promo, solamente se actualizan los datos
+                        var datos = $.extend(who, cliente);
+                        clienteUtils.saveCliente(datos, function(response) {
+                            if (!$('body').hasClass('registro-actualizacion')) {
+                                registroUtils.displayErrorMsg('¡Gracias por actualizar tus datos! Lastimosamente no podrás acceder a la promoción pues aplica únicamente para nuevos clientes.');
+                            } else {
+                                registroUtils.displayErrorMsg('Tus datos ya habían sido actualizados');
+                            }
+                            registroUtils.enableSubmitButton();
+                        });
+                        return false;
+                    }
+                }
+                // Si el cliente no existia, se crea y se le da la promoción.
+                // Si el cliente ya existia y no se estaba beneficiando de la promo, se actualiza su información y se le da la promoción.
+                var currentDate = new Date().toISOString();
+                switch (type) {
+                    case "tienda":
+                        cliente.fechaAltaClienteOffline = currentDate;
+                        cliente.registro_woowup = "Tienda";
+                        break;
+                    case "actualizacion":
+                        cliente.fechaAltaClienteActualizacion = currentDate;
+                        cliente.registro_woowup = "Actualizacion";
+                        break;
+                    case "registro":
+                    case "footer":
+                    case "popup":
+                        cliente.fechaAltaClienteWeb = currentDate;
+                        cliente.registro_woowup = "Web";
+                        break;
+                    default:
+                        break;
+                }
+                var datos = $.extend(who, cliente);
+                clienteUtils.saveCliente(datos, function(response) {
+                    if (userDocumentAlreadyHasPromo) {
+                        registroUtils.displayErrorMsg('GRACIAS POR ACTUALIZAR TUS DATOS PERO YA TE HABÍAMOS DADO ANTERIORMENTE EL DESCUENTO');
+                        registroUtils.enableSubmitButton();
+                        formRegistroUtils.animateRegistro(false);
+                        return false;
+                    }
+                    var fechaFin = registroUtils.addDays(new Date(), 30).toISOString();
+                    var datosPromocionControladaCliente = {
+                        email: cliente.email,
+                        fecha_inicio: currentDate,
+                        fecha_fin: fechaFin,
+                        codigo: codigo_descuento,
+                        ip: ipResponse
+                    };
+                    // Promocion controlada por cliente
+                    var who = {
+                        "email": cliente.email
+                    };
+                    var objeto = $.extend(who, datosPromocionControladaCliente);
+                    clienteUtils.savePromoControladaCliente(objeto);
+                    // Log cliente offline
+                    clienteUtils.getPromoClienteOfflineLog(objeto.email, 'Off-0', codigo_descuento, function(dataLog) {
+                        if (dataLog.length > 0) { // No añadir nuevo si ya existe
+                            registroUtils.redirectConfirmation(type);
+                            return false;
+                        }
+                        var fecha = registroUtils.convertDate(new Date());
+                        clienteUtils.savePromoClienteOffline({
+                            "email": cliente.email,
+                            "codigo": "Off-0",
+                            "fecha": fecha,
+                            "cupon": codigo_descuento,
+                            "ip": ipResponse
+                        }, function() {
+                            registroUtils.redirectConfirmation(type);
+                        });
+                    });
+                });
+            });
+        })
+    },
+    validateForm: function(form) {
+        var ok = true;
+        form.find("select").prop("required",true);
+        var inputcheck = form.find(".itemRad .popitem").length ? form.find('.itemRad .popitem input[name=genre]:checked') : false;
+        var inputnocheck = form.find('.itemRad .popitem input[name=genre]');
+        if(inputcheck.length == 0 ){
+            inputnocheck.parents('.popitem').addClass("border-red");
+            registroUtils.displayErrorMsg('DEBES RELLENAR TODOS LOS CAMPOS OBLIGATORIOS.');
+            console.log('entro');
+        }
+        form.find("[required]").each(function() {
+            if ($(this).val() == "") {
+                $(this).addClass("border-red");
+                registroUtils.displayErrorMsg('DEBES RELLENAR TODOS LOS CAMPOS OBLIGATORIOS.');
+                ok = false;
+            }
+        });
+        if (!form.find('#check_politica_datos:checkbox:checked').length && $(window).width() > 768) {
+            registroUtils.displayErrorMsg('Debes aceptar la Política de Tratamiento de Datos.');
+            ok = false;
+        } else {
+            if (!form.find('#check_politica_datos_mobile:checkbox:checked').length && $(window).width() < 769 && !$('body').hasClass('registro-tienda') && !$('body').hasClass('registro-web') && !$('body').hasClass('registro-actualizacion') && form.attr('id') != 'form_registro_popup') {
+                registroUtils.displayErrorMsg('Debes aceptar la Política de Tratamiento de Datos.');
+                ok = false;
+            } else {
+                if (!form.find('#check_politica_datos:checkbox:checked').length && form.attr('id') != 'form_registro_popup' && form.attr('id') != 'form_registro_footer_mobile') {
+                    registroUtils.displayErrorMsg('Debes aceptar la Política de Tratamiento de Datos.');
+                    ok = false;
+                }
+                if (!form.find('#check_politica_datos:checkbox:checked').length && form.attr('id') == 'form_registro_popup') {
+                    registroUtils.displayErrorMsg('Debes aceptar la Política de Tratamiento de Datos.');
+                    ok = false;
+                }
+            }
+        }
+        formRegistroUtils.animateRegistro(false);
+        return ok;
+    },
+    animateRegistro: function(animar) {
+        if (animar) {
+            $('body').append('<div class="wim-pagination-frame-container"><div class="wim-pagination-frame"></div></div>');
+        } else {
+            setTimeout(function() {
+                $('.wim-pagination-frame-container').remove();
+            }, 600);
+        }
+    }
+    
+}
+
+ 
+var registroUtils = {
+    addDays: function(date, days) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    },
+    convertDate: function(date) {
+        var yyyy = date.getFullYear().toString();
+        var mm = (date.getMonth() + 1).toString();
+        var dd = date.getDate().toString();
+        var mmChars = mm.split('');
+        var ddChars = dd.split('');
+        return yyyy + '-' + (mmChars[1] ? mm : "0" + mmChars[0]) + '-' + (ddChars[1] ? dd : "0" + ddChars[0]);
+    },
+    displayErrorMsg: function(msg) {
+        $("div.mensaje-error").html("<span class='error-nn'>" + msg + "</span>");
+    },
+    getRandomVersion: function() {
+        var min = 0;
+        var max = 1000;
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        var version = Math.floor(Math.random() * (max - min + 1)) + min;
+        return '&v=' + version;
+    },
+    redirectConfirmation: function(from) {
+        setTimeout(function() {
+            switch (from) {
+                case "tienda":
+                    window.location = '/registro/tienda/confirmacion';
+                    break;
+                case "actualizacion":
+                    window.location = '/registro/actualizacion/confirmacion';
+                    break;
+                case "registro":
+                case "footer":
+                case "popup":
+                    window.location = '/registro/web/confirmacion';
+                    break;
+                default:
+                    return true;
+            }
+        }, 1000);
+    },
+    createClientObj: function(form) {
+        if (typeof(form) == "undefined") {
+            return false;
+        }
+        var cliente = {
+            firstName: form.find("[name=firstName]").val().trim(),
+            lastName: form.find("[name=lastName]").val().trim(),
+            document: form.find("[name=cliente_documento]").val().trim(),
+            email: form.find("[name=cliente_email]").val().trim(),
+            homePhone: form.find("[name=cliente_celular]").val().trim(),
+            gender: form.find('input[name=genre]:checked').val(),
+            documentType: form.find("[name=document-type] option:selected").val(),
+            isNewsletterOptIn: true,
+            ip: ipResponse
+        };
+        if (form.find("#shopCode").length && true) {
+            cliente.shopCode = form.find("#shopCode").val();
+        }
+        if (form.find("[name=dia]").val() != "" && typeof form.find("[name=dia]").val() != 'undefined' && form.find("[name=mes]").val() != "" && typeof form.find("[name=mes]").val() != 'undefined' && form.find("[name=anio]").val() != "" && typeof form.find("[name=anio]").val() != 'undefined') {
+            var dia = form.find("[name=dia]").val().length < 2 ? "0" + form.find("[name=dia]").val() : form.find("[name=dia]").val().trim();
+            var mes = form.find("[name=mes]").val().length < 2 ? "0" + form.find("[name=mes]").val() : form.find("[name=mes]").val().trim();
+            var anio = form.find("[name=anio]").val().trim();
+            cliente.birthDate = mes + "/" + dia + "/" + anio;
+        }
+        return cliente;
+    },
+    validateClient: function(cliente) {
+        var emailRegexp = /\S+@\S+\.\S+/;
+        if (cliente.shopCode != undefined && !shopList.includes(cliente.shopCode)) {
+            registroUtils.displayErrorMsg('EL CÓDIGO TIENDA DEBE SER VÁLIDO.');
+            formRegistroUtils.animateRegistro(false);
+            return false;
+        }
+        if (cliente.gender == undefined || cliente.firstName == "" || cliente.lastName == "" || cliente.document == "" || cliente.email == "" || cliente.homePhone == "" || cliente.documentType == "" || !emailRegexp.test(cliente.email)) {
+            registroUtils.displayErrorMsg('DEBES RELLENAR TODOS LOS CAMPOS OBLIGATORIOS.');
+            formRegistroUtils.animateRegistro(false);
+            return false;            
+        } else if (cliente.email.indexOf(" ") >= 0) {
+            registroUtils.displayErrorMsg('ERROR: EL EMAIL NO PUEDE TENER ESPACIOS EN BLANCO.');
+            formRegistroUtils.animateRegistro(false);
+            return false;
+        } else {
+            return true;
+        }
+    },
+    rellenarSelectsFecha: function() {
+        var dia = 1;
+        var mes = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        var content_dias = '<option selected="selected" value="">Día</option>';
+        var content_meses = '<option selected="selected" value="">Mes</option>';
+        var content_anios = '<option selected="selected" value="">Año</option>';
+        var fecha = new Date();
+        var ano = fecha.getFullYear();
+        for (var i = 1; i <= 31; i++) {
+            content_dias += '<option value="' + i + '">' + i + '</option>';
+        }
+        $('select[id=dia]').html("").append(content_dias);
+        $.each(mes, function(index, e) {
+            content_meses += '<option value="' + (index + 1) + '">' + e + '</option>';
+        });
+        $('select[id=mes]').html("").append(content_meses);
+        for (var x = 1930; x <= ano; x++) {
+            content_anios += '<option value="' + x + '">' + x + '</option>';
+        }
+        $('select[id=anio]').html("").append(content_anios);
+    },
+    enableSubmitButton: function() {
+        setTimeout(function() {
+            $("[id=registro]:disabled").removeAttr("disabled");
+        }, 1000);
+    }
+}
+var clienteUtils = {
+    saveCliente: function(clienteObj, callback) {
+        clienteUtils.sendToWoowUp(clienteObj,function(response){
+            delete clienteObj.registro_woowup;
+            var request1 = {
+                crossDomain: true,
+                async: false,
+                cache: false,
+                url: "/api/dataentities/CL/documents",
+                data: JSON.stringify(clienteObj),
+                type: "PATCH",
+                headers: {
+                    "content-type": "application/json"
+                }
+            };
+            $.ajax(request1).done(function(response) {
+                if (typeof(callback) != "undefined") {
+                    callback(response);
+                }
+                formRegistroUtils.animateRegistro(false);
+                return response;
+            }).error(function(jqXHR, textStatus, errorThrown) {
+                registroUtils.displayErrorMsg('HA OCURRIDO UN ERROR AL REGISTRAR EL USUARIO, POR FAVOR RECARGA LA PÁGINA Y VUELVE A INTENTARLO<br/>Error Code: 002<br/>Value: ' + clienteObj.email);
+                registroUtils.enableSubmitButton();
+                errorLog.log({
+                    function: arguments.callee.name,
+                    file: "registro.js",
+                    params: "clienteObj:" + JSON.stringify(clienteObj),
+                    ajax_jqxhr: jqXHR,
+                    ajax_textstatus: textStatus,
+                    ajax_errorthrown: errorThrown
+                });
+                formRegistroUtils.animateRegistro(false);
+            });
+        });
+    },
+    sendToWoowUp: function(clienteObj,callback){
+        var custom_attributes = null;
+        switch(clienteObj.registro_woowup){
+            case "Tienda":
+                custom_attributes = {
+                    "fecha_registro_tienda" : new Date().toISOString(),
+                    "registro_tienda" : "Si",
+                    "tienda_del_registro" : clienteObj.shopCode
+                }
+            break;
+            case "Actualizacion":
+                custom_attributes = {
+                    "fecha_registro_actualizacion" : new Date().toISOString(),
+                    "registro_actualizacion" : "Si",
+                }
+            break;
+            case "Web":
+                custom_attributes = {
+                    "fecha_registro_web" : new Date().toISOString(),
+                    "registro_web" : "Si"
+                }
+            break;
+        }
+
+        var fechaNacimientoWoowUp = null;
+        if($('#anio').val() && $('#mes').val() && $('#dia').val()) {
+            fechaNacimientoWoowUp = $('#anio').val()+"-"+(parseInt($('#mes').val()) < 10 ? "0"+$('#mes').val() : $('#mes').val() )+"-"+(parseInt($('#dia').val()) < 10 ? "0"+$('#dia').val() : $('#dia').val());
+        }
+        var settings = {
+			"async": true,
+			"crossDomain": true,
+			"url": "https://events.woowup.com/events/users",
+			"type": "POST",
+			"headers": {
+				"cache-control": "no-cache"
+			},
+			"data": JSON.stringify({
+				"app": "OJmmozAFp",
+				"document": clienteObj.document,
+				"email": clienteObj.email,
+				"birthdate": fechaNacimientoWoowUp,
+				"telephone": clienteObj.homePhone,
+				"gender": clienteObj.gender == "Mujer" ? "F" : "M",
+				"first_name": clienteObj.firstName,
+				"last_name": clienteObj.lastName,
+				"custom_attributes": custom_attributes
+			})
+		}
+		$.ajax(settings).done(function (response) {
+            if(typeof callback != "undefined"){
+                callback(response);
+            }
+			console.log(response);
+		}).error((e) => {
+            console.log(e)
+        });
+    },
+    getClienteByEmail: function(email, callback) {
+        $.ajax({
+            crossDomain: true,
+            async: true,
+            url: '/api/dataentities/CL/search?_fields=id,hasPromoClienteOffline,hasPromoClienteWeb,hasPromoClienteActualizacion&_where=email=' + email + registroUtils.getRandomVersion(),
+            type: 'GET',
+            cache: false,
+            headers: {
+                "content-type": "application/json"
+            },
+            success: function(data) {
+                if (typeof(callback) != "undefined") {
+                    callback(data);
+                }
+                return data;
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                registroUtils.displayErrorMsg('Ha ocurrido un error durante el proceso de registro, por favor recarga la página y vuelve a intentarlo');
+                registroUtils.enableSubmitButton();
+                errorLog.log({
+                    function: "getClienteByEmail",
+                    file: "registro.js",
+                    params: "email:" + email,
+                    ajax_jqxhr: jqXHR,
+                    ajax_textstatus: textStatus,
+                    ajax_errorthrown: errorThrown
+                });
+            }
+        });
+    },
+    getClienteByCedula: function(cedula, callback) {
+        $.ajax({
+            crossDomain: true,
+            async: true,
+            url: '/api/dataentities/CL/search?_fields=id,email,hasPromoClienteOffline,hasPromoClienteWeb,hasPromoClienteActualizacion&_where=document=' + cedula + registroUtils.getRandomVersion(),
+            type: 'GET',
+            cache: false,
+            headers: {
+                "content-type": "application/json"
+            },
+            success: function(data) {
+                if (typeof(callback) != "undefined") {
+                    callback(data);
+                }
+                return data;
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                registroUtils.displayErrorMsg('Ha ocurrido un error durante el proceso de registro, por favor recarga la página y vuelve a intentarlo');
+                registroUtils.enableSubmitButton();
+                errorLog.log({
+                    function: "getClienteByCedula",
+                    file: "registro.js",
+                    params: "document:" + cedula,
+                    ajax_jqxhr: jqXHR,
+                    ajax_textstatus: textStatus,
+                    ajax_errorthrown: errorThrown
+                });
+            }
+        });
+    },
+    savePromoClienteOffline: function(obj, callback) {
+        var request = {
+            crossDomain: true,
+            async: true,
+            cache: false,
+            url: "/api/dataentities/PO/documents/",
+            data: JSON.stringify(obj),
+            type: "PUT",
+            headers: {
+                "content-type": "application/json"
+            }
+        };
+        $.ajax(request).success(function(res) {
+            if (typeof(callback) != "undefined") {
+                callback(res);
+            }
+            return res;
+        }).error(function(jqXHR, textStatus, errorThrown) {
+            registroUtils.displayErrorMsg('HA OCURRIDO UN ERROR DURANTE EL PROCESO DE REGISTRO, POR FAVOR RECARGA LA PÁGINA Y VUELVE A INTENTARLO<br/>Error Code: 207');
+            registroUtils.enableSubmitButton();
+            errorLog.log({
+                function: "savePromoClienteOffline",
+                file: "registro.js",
+                params: "obj:" + JSON.stringify(obj),
+                ajax_jqxhr: jqXHR,
+                ajax_textstatus: textStatus,
+                ajax_errorthrown: errorThrown
+            });
+        });
+    },
+    savePromoControladaCliente: function(obj, callback) {
+        $.ajax({
+            crossDomain: true,
+            async: true,
+            cache: false,
+            url: '/api/dataentities/CC/search?_fields=id&_where=email=' + obj.email + ' AND codigo=' + obj.codigo + registroUtils.getRandomVersion(),
+            type: 'GET',
+            headers: {
+                "content-type": "application/json"
+            },
+            success: function(data) {
+                if (data.length == 0) { // Guardar si no existía antes.
+                    var request = {
+                        crossDomain: true,
+                        async: true,
+                        cache: false,
+                        url: "/api/dataentities/CC/documents",
+                        data: JSON.stringify(obj),
+                        type: "PATCH",
+                        headers: {
+                            "content-type": "application/json"
+                        }
+                    };
+                    $.ajax(request).done(function(response) {
+                        if (typeof(callback) != "undefined") {
+                            callback(response);
+                        }
+                        return response;
+                    }).error(function(jqXHR, textStatus, errorThrown) {
+                        registroUtils.enableSubmitButton();
+                        errorLog.log({
+                            function: "savePromoControladaCliente (save)",
+                            file: "registro.js",
+                            params: "obj:" + JSON.stringify(obj),
+                            ajax_jqxhr: jqXHR,
+                            ajax_textstatus: textStatus,
+                            ajax_errorthrown: errorThrown
+                        });
+                    })
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                registroUtils.displayErrorMsg('HA OCURRIDO UN ERROR DURANTE EL PROCESO DE REGISTRO, POR FAVOR RECARGA LA PÁGINA Y VUELVE A INTENTARLO');
+                registroUtils.enableSubmitButton();
+                errorLog.log({
+                    function: "savePromoControladaCliente (getClient)",
+                    file: "registro.js",
+                    params: 'email=' + obj.email + ' AND codigo=' + obj.codigo,
+                    ajax_jqxhr: jqXHR,
+                    ajax_textstatus: textStatus,
+                    ajax_errorthrown: errorThrown
+                });
+            }
+        })
+    },
+    getPromoClienteOfflineLog: function(email, codigo, cupon, callback) {
+        $.ajax({
+            crossDomain: true,
+            async: true,
+            cache: false,
+            url: '/api/dataentities/PO/search?_fields=id&_where=email=' + email + ' AND codigo=' + codigo + ' AND cupon=' + cupon + registroUtils.getRandomVersion(),
+            type: 'GET',
+            headers: {
+                "content-type": "application/json"
+            },
+            success: function(data) {
+                if (typeof(callback) != "undefined") {
+                    callback(data);
+                }
+                return data;
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                registroUtils.displayErrorMsg('HA OCURRIDO UN ERROR DURANTE EL PROCESO DE REGISTRO, POR FAVOR RECARGA LA PÁGINA Y VUELVE A INTENTARLO');
+                registroUtils.enableSubmitButton();
+                errorLog.log({
+                    function: "getPromoClienteOfflineLog",
+                    file: "registro.js",
+                    params: "email:" + email + ", codigo:" + codigo + ", cupon:" + cupon,
+                    ajax_jqxhr: jqXHR,
+                    ajax_textstatus: textStatus,
+                    ajax_errorthrown: errorThrown
+                });
+            }
+        });
+    },
+    hasPromo: function(clientObj, type) {
+        switch (type) {
+            case "tienda":
+                return (typeof(clientObj.hasPromoClienteOffline != "undefined") && clientObj.hasPromoClienteOffline == true);
+                break;
+            case "actualizacion":
+                return (typeof(clientObj.hasPromoClienteActualizacion != "undefined") && clientObj.hasPromoClienteActualizacion == true);
+                break;
+            case "registro":
+            case "footer":
+            case "popup":
+                return (typeof(clientObj.hasPromoClienteWeb != "undefined") && clientObj.hasPromoClienteWeb == true);
+                break;
+            default:
+                return false;
+                break;
+        }
+    }
+}

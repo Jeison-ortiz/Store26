@@ -1,0 +1,402 @@
+var funcionalidadesGeneralesNew = function(){
+
+    var init = function(){
+        accionesHeaderMobile();
+        quitarDecimales();
+        generales();
+        accionesFooterMobile();
+        activePromesas();
+        valorClickProm();
+        setCookieDcto10();
+        rendernewsletter();
+        quitaEtiquetaFlag();
+        deployPopUpContactUS();
+
+    };
+
+//esto es temporar mientras evento 20 de julio
+    var hechoEnColombia = function () {
+
+        if( $('head title').html() == ' 288 – Patprimo' ){
+            $('head title').html('Hecho en Colombia');
+        }
+    };
+    hechoEnColombia();
+
+     /**
+     * @function deployPopUpContactUS Se despliega el popup de contacto si en la URL contiene el query showPopUpContactUs
+     */
+    function deployPopUpContactUS(data) {
+        if(location.search.indexOf('showPopUpContactUs') > -1){
+            var popUpContact =  document.getElementById("popup-callme");
+            popUpContact.classList.add("active");
+            popUpContact.children[0].style.display = "block";
+        }
+    }
+
+    var rendernewsletter = function () {
+        $(document).ready(function(){
+            $('.box-newsletter .newsletter fieldset').append('  <input class="checkbox-acepto-terminos" type="checkbox" name="input" value="acepto-terminos"  style="display: none;"/><p class="terminos-text" style="display: none;">Acepto <a class="terminos-link" href="http://www.patprimo.com/links-interes/autorizacion-tratamiento-datos-personales" target="_blank">Autorización de tratamiento de datos personales</a></p><p class="alert"></p>');
+        });
+
+        sendNewsletter();
+    }
+
+    var sendNewsletter = function (){
+        $(document).ready(function(){
+            $('.box-newsletter').on('click', '#newsletterButtonOK',function(e){
+                e.stopPropagation();
+                e.preventDefault();
+                var email = $('#newsletterClientEmail').val();
+
+                $('#newsletterClientEmail').focus(function () {
+                    $('#newsletterClientEmail').css({'background': '#FFF'});
+                    ('p.alert').hide();
+                });
+                if(email === ""){
+                    $('.box-newsletter .newsletter fieldset p.alert').html('Debe ingresar un email válido.').show();
+                    setTimeout(function(){
+                        $('.box-newsletter .newsletter fieldset p.alert').hide();
+                    }, 3000);
+                    $('input#newsletterClientEmail').focus().css({ 'background': '#ffdcdc'});
+                    return false;
+                }
+
+                if($('input.checkbox-acepto-terminos[name="input"]:checked').length === 0 ) {
+                    $('.box-newsletter .newsletter fieldset p.alert').html('Debe aceptar los terminos y condiciones').show();
+                    setTimeout(function(){
+                        $('.box-newsletter .newsletter fieldset p.alert').hide();
+                    }, 3000);
+                    return false;
+                }
+
+                var data = {
+                    "n_email": email,
+                    "n_gender": '',
+                    "n_validated": "true",
+                };
+
+                ajaxRequest(
+                    "http://200.93.168.196:3000/api/newsletter/patprimo",
+                    data,
+                    'POST'
+                    ,function($status,$data){
+                        console.log("status:",$status, $data);
+                        if($status == 'error' || $data.SaveContactJsonResult.StatusCode == 503){
+                            if($data.SaveContactJsonResult.StatusCode == 503){
+                                $('input.input-overlay').focus().css({ 'background': '#ffdcdc'});
+                                $('.box-newsletter .newsletter fieldset p.alert').html('Email inválido, corrígelo y vuelve a intentarlo.').show();
+                                setTimeout(function(){
+                                    $('.box-newsletter .newsletter fieldset p.alert').hide();
+                                }, 3000);
+                            }else{
+                                $('.box-newsletter .newsletter fieldset p.alert').html('Ocurrio un problema, por favor intenta nuevamente.').show();
+                                setTimeout(function(){
+                                    $('.box-newsletter .newsletter fieldset p.alert').hide();
+                                }, 3000);
+                            }
+                        }else{
+                            $('.box-newsletter .newsletter fieldset p.alert').html('Ocurrio un problema, por favor intenta nuevamente.').css({'color':'#0a9c6f'}).show();
+                            setTimeout(function(){
+                                $('.box-newsletter .newsletter fieldset p.alert').hide();
+                            }, 3000);
+                        }
+
+                    });
+            });
+        });
+
+    }
+
+
+    var ajaxRequest = function($url, $data, $type,$callback,$centinela){
+        var content = {url:$url};
+        if($centinela === true){
+            content.contentType =  'application/json; charset=utf-8';
+        }
+
+        if($data !== ""){
+            content["data"] = $data;
+        }
+        if($type !== ""){
+            content["type"] = $type;
+        }
+        if($callback !== ""){
+            content["success"] = function(data){
+                $callback('success',data);
+            }
+            content["error"] == function(data){
+                $callback('error',data);
+            }
+        }
+        content["global"] = false;
+        $.ajax(content);
+    }
+
+    var setCookieDcto10 = function(){
+        var _tk = getUrlParameter('_tk');
+        if(_tk){
+            setCookie('10dctof',_tk.substring(7, 6))
+        }
+    }
+
+    var setCookie = function (cname, cvalue) {
+        var days = 1;
+        var d = new Date();
+        d.setTime(d.getTime() + (days*24*60*60*1000));
+        var expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+
+    var getCookie = function (cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return null;
+    }
+
+
+    var getUrlParameter = function (sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    };
+
+    // aqui se acaba
+    var generales = function(){
+
+        if($("body").hasClass("imTablet")){
+            $(".navDesktop > ul > li > a").removeAttr("href");
+        }
+
+        $('.topbar input').focus(function(){
+            $(this).css('outline-color', '#ffffff')
+        });
+
+        $(".goTop").click(function() {
+            $('html, body').animate({
+                scrollTop: 0
+            }, 1000);
+        });
+
+        $( ".success br" ).remove();
+    };
+
+    var valorClickProm = function(){
+        $(".headerNew .promesasDeValor div a").click(function(){
+            var textPromesas = $(this).data("namecontent");
+            localStorage.setItem("linkName",textPromesas);
+        });
+    };
+
+    var activePromesas = function(){
+        $(".headerNew .promesasDeValor div").hover(function(){
+            $(this).children(".promValordespliegue").slideToggle("fast");
+        })
+    };
+
+    var accionesHeaderMobile = function(){
+        var openMenuMobile = $('.staticHeaderMobileNew .leftBoxMenuMobile .menuMobileIco');
+        var menuMobile = $('.menuMobileNew');
+        var despliegueMobile = $('.menuMobileNew .navMobile ul li h2');
+        var closeMenuMobile = $('.menuMobileNew .closeMenu');
+        var openSearch = $('.staticHeaderMobileNew .rightBoxMenuMobile .boxSearchMobile');
+        var closeSearch = $('.search .closeSearchbox');
+        var searchBoxMobile = $('.search');
+
+        openSearch.click(function(){
+            searchBoxMobile.css("right","0");
+        })
+
+        closeSearch.click(function(){
+            searchBoxMobile.css("right","-100%")
+        })
+
+        closeMenuMobile.click(function(){
+            menuMobile.animate({
+                left: "-=100%"
+            },500);
+        })
+
+        openMenuMobile.click(function(){
+            menuMobile.animate({
+                left:"+=100vw",
+                opacity:1
+            },300);
+            setTimeout(function(){
+                window.scrollTo(0,1);
+            }, 500);
+        })
+
+        despliegueMobile.click(function(){
+            $(this).siblings(".mobileMenuDesp").slideToggle("300");
+        });
+    };
+
+    var accionesFooterMobile = function(){
+        if($("body").hasClass("imPhone")){
+            $('.contentFooterNew .footerInf .footerLinks h2').click(function(){
+                $(this).siblings().slideToggle();
+            });
+        }
+    };
+
+    var formatearMoneda = function( numero, numDecimales, separadorMiles, separadorDecimales){
+        var n = numero,
+            numDecimales = isNaN(numDecimales = Math.abs(numDecimales)) ? 2 : numDecimales,
+            separadorDecimales = separadorDecimales == undefined ? "." : separadorDecimales,
+            separadorMiles = separadorMiles == undefined ? "," : separadorMiles,
+            s = n < 0 ? "-" : "",
+            i = parseInt(n = Math.abs(+n || 0).toFixed(numDecimales)) + "",
+            j = (j = i.length) > 3 ? j % 3 : 0;
+        return s + (j ? i.substr(0, j) + separadorMiles : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + separadorMiles) + (numDecimales ? separadorDecimales + Math.abs(n - i).toFixed(numDecimales).slice(2) : "");
+    };
+
+    var quitarDecimales = function() {
+        $('.mainCategory .prateleira.vitrine.n1colunas').each(function(indexVitrina, valueVitrina){
+            if (!$(valueVitrina).hasClass('quitarDecimales')) {
+                $(valueVitrina).find('ul').each(function(i,v){
+
+                    $(this).parent().addClass('quitarDecimales');
+
+                    var objUniquePrice = $(v).find('li .prices span.uniquePrice');
+                    var objproductList = $(v).find('li .prices span.productList');
+                    var objbestPrice   = $(v).find('li .prices span.bestPrice');
+
+                    var uniquePrice = $(objUniquePrice).text().replace('$','').replace(' ','').replace(/[,]+/g, '').replace(/[.]+/g, '');
+                    var productList = $(objproductList).text().replace('$','').replace(' ','').replace(/[,]+/g, '').replace(/[.]+/g, '');
+                    var bestPrice   = $(objbestPrice).text().replace('$','').replace(' ','').replace(/[,]+/g, '').replace(/[.]+/g, '');
+
+                    uniquePrice = formatearMoneda(uniquePrice/100,0,'.',',');
+                    productList = formatearMoneda(productList/100,0,'.',',');
+                    bestPrice   = formatearMoneda(bestPrice/100,0,'.',',');
+
+                    // console.info('uniquePrice');
+                    // console.info(uniquePrice);
+
+                    $(objUniquePrice).text('$ '+uniquePrice).addClass('formated');
+                    $(objproductList).text('$ '+productList).addClass('formated');
+                    $(objbestPrice).text('$ '+bestPrice).addClass('formated');
+                });
+            }
+        })
+    }
+
+    return{init:init,formatearMoneda:formatearMoneda,quitarDecimales:quitarDecimales};
+
+}();
+
+$(window).load(function(){
+    $(".amount-items-in-cart .cartInfoWrapper .title #MostraTextoXml1").text("CARRITO DE COMPRA:").show();
+});
+
+$(document).ready(function(){
+    funcionalidadesGeneralesNew.init();
+
+    var heightLogo = $('.box-logo').outerHeight();
+    $(window).on('scroll', function() {
+        var scrollTop = $(window).scrollTop();
+        if (scrollTop > heightLogo) {
+            $('.header').addClass('menu-fijo');
+        } else {
+            $('.header').removeClass('menu-fijo');
+            $('.mainContent').removeClass('mainContentFixed');
+        }
+
+        if(scrollTop  > 700) {
+            $('.goTop').css("display","block");
+        } else {
+            $('.goTop').css("display","none");
+        }
+    });
+
+    //Producto bono de regalo
+    $('.Color.productid-2006573').hide();
+    $('.Talla.productid-2006573').find('.specification').text('Precio');
+
+    $('.Color.productid-2006573').parent().parent().parent().find('.guia-tallas').hide();
+
+    $(document).on("hover",".carritoCompras",function(){
+        $('.cartCheckout').attr("href","/checkout");
+    });
+
+    var ventana_alto = $(window).height();
+    $(".fnd-navMobile").css("height" , ventana_alto);
+    $(".menuMobile").css("height" , ventana_alto);
+});
+
+
+//---QuickView
+function displayQuickViewIframe(product){
+    var productUrl=product+'?lid=ee2d130a-ea83-4f41-b839-c7daf260f72a&quickview=true';
+    $('body').append('<div class="quickview"><div class="contenedorQuickView"><div class="subContenedorQuickView"><iframe onload="onLoad();" class="iframeQV" width=700 height=450 src='+productUrl+'></iframe></div></div></div>');
+    $('body').append('<div class="quickviewLb"></div>');
+
+    $('.quickviewLb').click(function(){
+        $('.quickview').remove();
+        $('.quickviewLb').remove();
+    });
+}
+function onLoad() {
+    $('.contenedorQuickView').append('<span class="close">X</span>');
+    $('.close').click(function(){
+        $('.quickview').remove();
+        $('.quickviewLb').remove();
+    });
+};
+
+$("#newsletterError").val(function(index, value) {
+    return value.replace("Encontramos um erro no cadastro de suas informações.<br />Por favor, tente novamente!", "Ingresa correctamente la información. Por favor, vuelve a intentarlo!");
+});
+
+
+//Desplegar menu móvil
+$(".icoMenu-mobile").click(function(){
+    $(".fnd-navMobile").fadeToggle();
+    $(".menuMobile").fadeToggle();
+});
+
+$(".fnd-navMobile").click(function(){
+    $(this).fadeOut();
+    $(".menuMobile").fadeOut();
+});
+
+$(".menuMobile > .navMobile > ul > li > ul").hide();
+$(".menuMobile > .navMobile > ul > li > div").hide();
+
+$(".menuMobile > .navMobile > ul > li > h2").click(function(){
+    $(this).siblings().fadeToggle();
+});
+//Fin desplegar menu móvil
+
+
+var quitaEtiquetaFlag = function() {
+    $(document).ready(function () {
+        $.each($('.productShelf .tagDescuento'), function(){
+            var tagDiscount = $(this);
+            if(tagDiscount.html() != '') {
+                tagDiscount.siblings('.tagDestaque').find('.todo-sin-sale').hide();
+            }
+        });
+    });
+}
+

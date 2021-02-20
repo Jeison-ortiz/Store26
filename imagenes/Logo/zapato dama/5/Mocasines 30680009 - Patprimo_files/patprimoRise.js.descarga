@@ -1,0 +1,1498 @@
+/**
+ * Created by Ana on 14/11/2018.
+ **/
+/* ================ Pop-Up (Cookies) ==================*/
+var customapp = false;
+function crearCookie(name, value, days) {
+
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        var expires = "; expires=" + date.toGMTString();
+    }
+    else
+        var expires = "";
+    var domain = window.location.hostname;
+    domain = domain.replace("www.", "");
+    domain = domain.replace("www2.", "");
+    document.cookie = name + "=" + value + expires + ";domain=." + domain + ";path=/";
+}
+function actualizarCookie(name, value) {
+
+    document.cookie = name + "=" + value + "; path=/";
+}
+function leerCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0)
+            return unescape(c.substring(nameEQ.length, c.length));
+    }
+    return "";
+}
+function popUp() {
+    $('.popUpWrap button.close, .cancel a').click(function (event) {
+        $('.popUpDesc').css('display', 'none');
+    });
+}
+/* ================ FIN Pop-Up (Cookies) ==================*/
+function callMe() {
+    $("#btncallme").click(function () {
+        $('#call').toggleClass("slow");
+    });
+}
+function callMeback() {
+    /*$('.img-tel').click(function (event) {
+        $('.modal-callme').addClass('active');
+        $('.modalWrap').css('display', 'block');
+    });*/
+    $('.close').click(function (event) {
+        $('.modal-callme').removeClass('active');
+        $('.modalWrap').css('display', 'none');
+    });
+}
+function tallaProducto() {
+    $('#btntalla span').click(function (event) {
+        $('.modal-talla').addClass('active');
+        $('.modal-talla .modalWrap').css('display', 'block');
+    });
+    $('#btntalla button').click(function (event) {
+        $('.modal-talla').addClass('active');
+        $('.modal-talla .modalWrap').css('display', 'block');
+    });
+    $('.close').click(function (event) {
+        $('.modal-talla').removeClass('active');
+        $('.modal-talla .modalWrap').css('display', 'none');
+    });
+}
+function filtrosSales() {
+    var urlPath = window.location.pathname;
+    var all_Path = urlPath.split("/");
+    var params = location.search;
+
+    if (params.indexOf('productClusterIds') > -1 && window.location.search != "") {
+        /*if (window.location.pathname.indexOf('/617') == -1 && (window.location.search != '?fq=H:617') && window.location.pathname.indexOf('/635') != 0
+            && (vtxctx.searchTerm != 'sport')) {
+            $('body').addClass('category-sales')
+            $('.search-multiple-navigator, .menuLeft').remove()
+        } else {*/
+        if( window.location.pathname.indexOf('/617') != -1 || (window.location.search == '?fq=H:617') || window.location.pathname.indexOf('/635') == 0
+        || vtxctx.searchTerm == 'sport' ){
+            ajustarMenuLateral();
+        }else if( $('.search-multiple-navigator').length == 0 ){
+            ajustarMenuLateral();
+            /*$('body').addClass('category-sales');
+            $('.search-single-navigator, .menuLeft').remove();*/
+        }else if( location.pathname.indexOf('/359') != -1 || location.pathname.indexOf('/139') != -1 || location.pathname.indexOf('/140') != -1 ){
+            $('body').addClass('category-sales');
+            //$('.search-multiple-navigator, .menuLeft').remove();
+            $('.menuLeft').remove();
+        }
+        /*}*/
+
+        var departament = '';
+        if (vtxctx.departmentName == 'Mujer') {
+            departament = 'mujer'
+        } else if (vtxctx.departmentName == 'Hombre') {
+            departament = 'hombre'
+        } else if (vtxctx.departmentName == 'Tallas Extendidas') {
+            departament = 'tallas-extendidas'
+        }
+        else {
+            departament = null
+        }
+    } else if (vtxctx.searchTerm == 'sport') {
+        ajustarMenuLateral();
+    }
+    if (window.location.pathname.indexOf('/433') > -1) {
+        $('body').addClass('julieta-pineres')
+        $('.rightContent').prepend('<img style="width:100%;height:auto;max-width:1200px;display:block;margin:0 auto;" src="https://patprimo.vteximg.com.br/arquivos/Header_Landing_Julieta.jpg" alt="Julieta"/>')
+
+        if ($("body").width() > 425) {
+            $('body.searchResultNew section.mainContent').attr('style', 'margin-top:170px!important;')
+        }
+    }
+    if (window.location.pathname.indexOf('/463') > -1) {
+        $('body').addClass('julieta-pineres')
+        $('.rightContent').prepend('<a href="/links-interes/promociones" ><img style="width:100%;height:auto;max-width:1200px;display:block;margin:0 auto;" src="https://patprimo.vteximg.com.br/arquivos/ids/560555/Header - Landing-Boxers.jpg" alt="Boxers"/></a>')
+        if ($("body").width() > 425) {
+            $('body.searchResultNew section.mainContent').attr('style', 'margin-top:170px!important;')
+        }
+    }
+}
+function search(){
+    $('.searchBox .busca input.fulltext-search-box').off("keypress").unbind("keypress").keypress(function(e){
+        if ( e.which == 13 ){
+            location.href = "/"+this.value+"?PS=24&O=OrderByReleaseDateDESC";
+        }
+    });
+}
+$(document).ready(function () {
+    var isCustomApp = getCookie('customapp');
+    
+    if (window.location.href.indexOf("/links-interes/preguntas-frecuentes/cambios-devoluciones") != -1 || window.location.href.indexOf("lid=acf6c306-1db8-43fb-a9fe-604c28cd5700") != -1) {
+        document.getElementById("opcion1").style.display = "block";
+        document.getElementById("buttonopc1").className+=" active";
+    }
+    
+    if($('body').hasClass('home') && isCustomApp == 1) {
+        BandaOnlyApp();
+    }
+
+    if (window.location.href.indexOf("customapp=") != -1) {
+        customapp = true;
+        setCookie("customapp", 1, 365);
+        BandaOnlyApp();
+    }
+    if ($(".categoryNew").length) {
+        $(".categoryTitle").remove()
+    }
+    if (getCookie("customapp") != 1) {
+        controlPopUpRegister();
+        if($(window).width() < 768){
+            var typeMovil=getTypeMovil();
+            if (typeMovil == 'AndroidOS' || typeMovil == 'iOS'){
+               // controlBandaApp();
+            }
+        }
+    }
+    popUp();
+    callMe();
+    if ($('body').hasClass('categoryNew')) {
+        filtrosSales();
+    }
+    callMeback();
+    tallaProducto();
+    addCarruselMenuCampanias();
+    vermas();
+    clickOpenClose();
+    search();
+    if($("#tiempos-de-entrega tbody").length > 0)
+        pintarEnvioACiudades();
+    if($("#tiempos-de-entrega-contraentrega tbody").length > 0)
+        pintarEnvioACiudadesContraentrega();
+});
+window.onload = function () {
+    quitOrderByOptions();
+    //$(".viewProductCat .icon-producto-10").trigger('click');
+    // Sobrescribir comportamiento de boton contacto del header
+    // $(".headerNew.header18").find(".rightBox").children("div").first().find("a").click(function () {
+    //     $('.modal-callme').addClass('active');
+    //     $('.modalWrap').css('display', 'block');
+    //     //location.href ="https://www.patprimo.com/promesas-de-valor";
+    // });
+
+    // Cambiar texto de input buscador
+    if ($(".headerNew.header18").find(".busca").find("input[type=text]").length) {
+        $(".headerNew.header18").find(".busca").find("input[type=text]").val($(".headerNew.header18").find(".busca").find("input[type=text]").val().replace(/\./g, ""));
+    }
+    // Carrusel
+    $("#header18_carousel").owlCarousel({
+        items: 1,
+        loop: true,
+        center: true,
+        touchDrag: false,
+        pullDrag: false,
+        dots: false,
+        autoplay: true,
+        mouseDrag: false,
+        autoplayTimeout: 7500
+    });
+    // Anadir icono luca en buscador ANTIGUO
+    //$(".HeadContainer").children(".searchBox").children("fieldset").prepend($("<img>").attr("src", "/arquivos/header_search.png"));
+    // Modificado por Marta M. 06/06/2019
+    $(".HeadContainer").children(".alignRight").children(".searchBox").children("fieldset").prepend($("<img>").attr("src", "/arquivos/header_search.png"));
+    //Resumen carrito compra pequeño OCULTO
+    var resumenCarritoHeader = function () {
+        var init = function () {
+            showQtyHeader();
+        };
+        var showQtyHeader = function () {
+            $(".cart").show();
+            // $(".carritoComprasBox").hide();
+            var countProductsCart = 0;
+            vtexjs.checkout.getOrderForm().done(function (orderForm) {
+                $.each(orderForm.items, function (indexItems, valueItems) {
+                    countProductsCart += valueItems.quantity;
+                });
+                $('.carritoCompras .infoCarrito .quantity p').text(countProductsCart);
+                var nItems = orderForm.items.length;
+                var total = 0;
+                
+                if (orderForm.totalizers.length == 0) {
+                    total = objPrincipal.currency(orderForm.value, 0, '');
+                    totalP = orderForm.value/100;
+                } else {
+                    total= objPrincipal.currency(orderForm.totalizers[0].value, 0, '');
+                    totalP = orderForm.totalizers[0].value/100;
+
+                }
+                
+                $('.content-infoTotal-cart .infoItems .infoTotalItems').empty().append(nItems);
+                $('.content-infoTotal-cart .infoValue .infoTotalValue').empty().append('$ '+total);
+
+                var totalPendiente = 130000-parseInt(totalP);        
+
+                var porcentaje = ( parseInt(totalP) / 130000 )*100;
+                //var porcentaje = 100;
+
+                $('.barraCantidad').animate({
+                    width: porcentaje+'%'
+                }, 500, function(){
+                    $('.barraCantidad').fadeIn(500);
+                });
+
+                if (parseInt(totalP) >= 130000) {
+                    $('.tituloDescuentoSI').css('display','block');
+                    $('.tituloDescuentoNO').css('display','None');
+                }else{
+                    $('.tituloDescuentoSI').css('display','none');
+                    $('.tituloDescuentoNO').empty().append('Faltan <strong>$'+(totalPendiente/1000).toFixed(3)+'</strong> para tu <strong>ENVÍO GRATIS</strong>');
+                    $('.tituloDescuentoNO').css('display','block');
+                }
+                if (orderForm.totalizers.length == 0) {
+                    $('.subtotal-mini').text('$ ' + objPrincipal.currency(orderForm.value, 0, ''))
+                } else {
+                    $('.subtotal-mini').text('$ ' + objPrincipal.currency(orderForm.totalizers[0].value, 0, ''))
+                }
+            });
+        };
+        return {
+            init: init, showQtyHeader: showQtyHeader
+        }
+    }();
+    resumenCarritoHeader.init();
+    //Indice carrito compra desktop
+    $(window).on('orderFormUpdated.vtex load hashchange', function (ev, orderForm) {
+        var countProductsCart = 0;
+        //console.log(orderForm);
+        $.each(orderForm.items, function (indexItems, valueItems) {
+            countProductsCart += valueItems.quantity;
+        });
+        $('.carritoCompras .infoCarrito .quantity p').text(countProductsCart);
+        var nItems = orderForm.items.length;
+        var total = 0;
+        
+        if (orderForm.totalizers.length == 0) {
+            total = objPrincipal.currency(orderForm.value, 0, '');
+            totalP = orderForm.value/100;
+        } else {
+            total= objPrincipal.currency(orderForm.totalizers[0].value, 0, '');
+            totalP = orderForm.totalizers[0].value/100;
+
+        }
+        
+        $('.content-infoTotal-cart .infoItems .infoTotalItems').empty().append(nItems);
+        $('.content-infoTotal-cart .infoValue .infoTotalValue').empty().append('$ '+total);
+
+        var totalPendiente = 130000-parseInt(totalP);        
+
+        var porcentaje = ( parseInt(totalP) / 130000 )*100;
+        //var porcentaje = 100;
+
+        $('.barraCantidad').animate({
+            width: porcentaje+'%'
+        }, 500, function(){
+            $('.barraCantidad').fadeIn(500);
+        });
+
+        if (parseInt(totalP) >= 130000) {
+            $('.tituloDescuentoSI').css('display','block');
+            $('.tituloDescuentoNO').css('display','None');
+        }else{
+            $('.tituloDescuentoSI').css('display','none');
+            $('.tituloDescuentoNO').empty().append('Faltan <strong>$'+(totalPendiente/1000).toFixed(3)+'</strong> para tu <strong>ENVÍO GRATIS</strong>');
+            $('.tituloDescuentoNO').css('display','block');
+        }
+        if (orderForm.totalizers.length == 0) {
+            $('.subtotal-mini').text('$ ' + objPrincipal.currency(orderForm.value, 0, ''))
+        } else {
+            $('.subtotal-mini').text('$ ' + objPrincipal.currency(orderForm.totalizers[0].value, 0, ''))
+        }
+    });
+    //Indice carrito compra mobile
+    $(window).on('orderFormUpdated.vtex load hashchange', function (ev, orderForm) {
+        var countProductsCart = 0;
+        $.each(orderForm.items, function (indexItems, valueItems) {
+            countProductsCart += valueItems.quantity;
+        });
+        $('.rightBoxMenuMobile .boxcartMobile .cart-info .amount-products em').text(countProductsCart);
+
+        if($(".header-menu-mobile .cart-menu-mobile em").length == 0){
+            $('<em>').attr('class',"amount-products-em").text(countProductsCart).appendTo(".header-menu-mobile .cart-menu-mobile");
+        }
+    });
+    // Fixed header
+    var positionTopDissapear = 82;
+    var window_size = $(window).width();
+    if (window_size > 768) {
+        $(window).scroll(function () {
+            if(($(window).scrollTop() > positionTopDissapear)){
+                $(".menu.patprimo-menu").addClass("fixedMenu");
+                $(".infoCarrito").addClass("fixedCart");
+                $(".resumenCarrito").addClass("fixedCartResumen");
+                $(".rightBoxElement").addClass("fixedPhone");
+                $(".busca").addClass("fixedSearch");
+            }else {
+                $(".menu.patprimo-menu").removeClass("fixedMenu");
+                $(".infoCarrito").removeClass("fixedCart");
+                $(".resumenCarrito").removeClass("fixedCartResumen");
+                $(".rightBoxElement").removeClass("fixedPhone");
+                $(".busca").removeClass("fixedSearch");
+            }
+        })
+    }
+    /*Operaciones newfootermobile*/
+    if (/*$(window).width()<601 && */$('.footer-mobile').hasClass('pat-footer-mobile')) {
+        $(document).on('click', '.footer-mobile .itemRad .itm input', function (e) {
+            $('.itemRad .itm input').removeClass('seleccionado');
+            $(this).addClass('seleccionado');
+        });
+        $(document).on('click', '.footer-mobile #terms-footer .cgv', function (e) {
+            if ($(this).hasClass('seleccionado')) {
+                $(this).removeClass('seleccionado');
+            } else {
+                $(this).addClass('seleccionado');
+            }
+        });
+        $(document).on('click', '.dropdown-div h4', function (e) {
+            e.preventDefault();
+            if ($(this).hasClass('abierto')) {
+                $(this).next().slideUp();
+                $(this).removeClass('abierto');
+            } else {
+                $(this).next().slideDown();
+                $(this).addClass('abierto');
+            }
+        });
+    }
+    $(document).on('click', '.dropdown-div .antiguoH4', function (e) {
+        e.preventDefault();
+        if ($(this).hasClass('abierto')) {
+            $(this).next().slideUp();
+            $(this).removeClass('abierto');
+        } else {
+            $(this).next().slideDown();
+            $(this).addClass('abierto');
+        }
+    });
+    if ($('#contenido-principal-landing').length) {
+        lanzarCarruselFotos();
+    }
+    $(document).on('click', 'li.primerNivel', function () {
+        if ($(this).hasClass("cerrado")) {
+            $(this).removeClass("cerrado");
+            $(this).find("ul").show();
+        } else {
+            $(this).addClass("cerrado");
+            $(this).find("ul").hide();
+        }
+    })
+    $(document).on('click', '.contFormZendesk .headerFormContact .close', function () {
+        $('.popup.contFormZendesk').hide();
+    });
+    $(document).on('click', '.bloque-items a.sub-group-footer-mobile.contactoEnlace', function () {
+        $('#contactFormMovil .contFormZendesk').show();
+    });
+    if ($(window).width() < 768) {
+        $(".prateleira .linea").remove();
+    }
+    popupFunctions();
+    bindAppCartQuantity();
+    if (customapp || getCookie("customapp") == 1) {
+        hideElementApp();
+    }
+    if (customapp || getCookie("customapp") == 1) {
+        var typeMovil = getTypeMovil();
+        if ((typeMovil == 'iOS')) {
+            hideElementAppIOS();
+        }
+    }
+    $(document).on("click", "header .headerNew.header18 .HeadContainer .searchBox .busca input", function () {
+        if ($(this).val() == 'Buscar') {
+            $(this).val("");
+        }
+    })
+    /*FUNCION PARA DAR TAMAÑO DINÁMICO AL CARRITO DESPLEGABLE*/
+    $('header .HeadContainer .cart').mouseenter(function () {
+        if (!$(this).find('.containerTotal').is(':first-child')) {
+            $(this).find('.containerTotal').prependTo('header .HeadContainer .cart .resumenCarrito .productExist');
+            $(this).find('.containerTotal .containerBtnPay .btnPay').text('FINALIZAR COMPRA');
+        }
+        if (!$(this).find('.productExist td').length) {
+            $(this).find('.resumenCarrito').css('height', 'auto');
+        } else {
+            if ($(this).find('.productExist').height() > $(window).height() - 115) {
+                $(this).find('.resumenCarrito').css('height', 'calc(100vh - 60px)');
+            } else {
+                $(this).find('.resumenCarrito').css('height', 'auto');
+            }
+        }
+    });
+    //Add evento a carrito mobile jc
+    $(".boxcartMobile a").addClass("CartMobileClosed");
+    $(".boxcartMobile a").click(handleCartMobile);
+};
+function addCarruselMenuCampanias() {
+    if ($('.menu.patprimo-menu .carrusel-editoriales').length) {
+        $('.carrusel-editoriales').owlCarousel({
+            items: 2,
+            nav: true,
+            dots: false,
+            center: true,
+            autoplay: true,
+            margin: 10,
+            loop: true,
+            navText: ["<span class='control-left'><</span>", "<span class='control-right'>></span>"],
+            autoplayTimeout: 3000
+        });
+    }
+}
+function controlBandaApp() {
+    if(location.search.indexOf("Icommarketing") == -1){
+        var path = location.pathname;
+        if (!leerCookie("banda") && path.indexOf('/registro') == -1) {
+            crearCookie("banda", true, 365);
+            window.sessionStorage.setItem("showBanda", "si");
+            pintarBandaApp();
+        } else if (leerCookie("banda") && !leerCookie("showBanda1") && path.indexOf('/registro') == -1) {
+            crearCookie("showBanda1", true, 365);
+            if (typeof window.sessionStorage.getItem("showBanda") === 'undefined' || window.sessionStorage.getItem("showBanda")  === null) {
+                pintarBandaApp();
+                window.sessionStorage.setItem("showBanda", "si");
+            }
+        } else if (leerCookie("banda") && leerCookie("showBanda1") && !leerCookie("showBandaDay") && path.indexOf('/registro') == -1) {
+            if (typeof window.sessionStorage.getItem("showBanda") === 'undefined' || window.sessionStorage.getItem("showBanda")  === null) {
+                crearCookie("showBandaDay", true, 1);
+                pintarBandaApp()
+                window.sessionStorage.setItem("showBanda", "si");
+            }
+        }
+    }
+}
+function controlPopUpRegister() {
+    if (location.search.indexOf("Icommarketing") == -1) {
+        var path = location.pathname;
+        var datos = location.search.replace("?","&").split("&");
+            for(var i = 0; i< datos.length; i++){
+                var clave = datos[i].split("=")[0];
+                var valor = datos[i].split("=")[1];
+                if(clave == "utm_source" && valor == "emBlue"){
+                    return false;
+                }
+            }
+        if (!leerCookie("popUp") && path.indexOf('/registro') == -1) {
+            crearCookie("popUp", true, 365);
+            window.sessionStorage.setItem("showpopup", "si");
+            $(".popUpDesc").show();
+        } else if (leerCookie("popUp") && !leerCookie("showPopUp1") && path.indexOf('/registro') == -1) {
+            crearCookie("showPopUp1", true, 365);
+            if (typeof window.sessionStorage.getItem("showpopup") === 'undefined' || window.sessionStorage.getItem("showpopup") === null) {
+                $(".popUpDesc").show();
+                window.sessionStorage.setItem("showpopup", "si");
+            }
+        } else if (leerCookie("popUp") && leerCookie("showPopUp1") && !leerCookie("showPopUpDay") && path.indexOf('/registro') == -1) {
+            if (typeof window.sessionStorage.getItem("showpopup") === 'undefined' || window.sessionStorage.getItem("showpopup") === null) {
+                crearCookie("showPopUpDay", true, 1);
+                $(".popUpDesc").show();
+                window.sessionStorage.setItem("showpopup", "si");
+            }
+        }
+    }
+}
+function quitOrderByOptions() {
+    if ($('.resultado-busca-filtro .orderBy select').length) {
+        $('.resultado-busca-filtro .orderBy select option').each(function (e) {
+            if ($(this).val() == 'OrderByReviewRateDESC') {
+                $(this).remove();
+            } else if ($(this).val() == 'OrderByNameASC') {
+                $(this).remove();
+            } else if ($(this).val() == 'OrderByNameDESC') {
+                $(this).remove();
+            }
+        });
+
+    }
+}
+function lanzarCarruselFotos() {
+    if ($.fn.owlCarousel) {
+        var $fullbanner = $('.bloque-slider-fotos .owl-carousel');
+        if ($fullbanner.length) {
+            $fullbanner.owlCarousel({
+                items: 1,
+                singleItem: true,
+                autoPlay: true,
+                loop: true,
+                stopOnHover: true,
+                nav: true,
+                autoHeight: true
+            });
+        }
+    }
+}
+function addTopBanner(img_src, href) {
+    if ($(".rightContent").length) {
+        var div = $("<div>").attr("id", "banner-categoria");
+        var a = $("<a>").appendTo(div);
+        if (href != undefined && href.length > 0) {
+            a.attr("href", href);
+        }
+        var img = $("<img>").attr("src", img_src).appendTo(a);
+        $(".rightContent").prepend(div);
+    }
+}
+/**
+ * Da comportamiento a los elementos que muestran / ocultan los diferentes popup
+ */
+function popupFunctions() {
+    // Header Desktop / Call Me
+    $(document).on('click', 'header [data-namecontent="text-linea-atencion"]', function () {
+        $('.modal-callme .modalWrap').show();
+        $('#popup-callme').addClass("active");
+    });
+    // Header Mobile / Telefono
+    $(document).on('click', 'header .search-iconos-call', function () {
+        $('#popup-telefono .popup-tf').show();
+        $('#popup-telefono').addClass("active");
+    });
+    // Menu mobile / Telefono
+    $(document).on('click', '.content-botones.tf-bottom', function () {
+        $('#popup-telefono .popup-tf').show();
+        $('#popup-telefono').addClass("active");
+    });
+    // Menu mobile / Call Me
+    $(document).on('click', '.content-botones.whatsapp-bottom', function () {
+        $('.modal-callme .modalWrap').show();
+        $('#popup-callme').addClass("active");
+    });
+    // Menu mobile / Contacto
+    $(document).on('click', '.content-botones.email-bottom', function () {
+        $('#popup-contacto').children('.popup').show();
+        $('#popup-contacto').addClass("active");
+    });
+    // Footer mobile / Contacto
+    $(document).on('click', '.sub-group-footer-mobile.contactoEnlace', function () {
+        $('#popup-contacto').children('.popup').show();
+        $('#popup-contacto').addClass("active");
+    });
+    // Footer desktop / Contacto
+    $(document).on('click', 'footer .contactoEnlace', function () {
+        $('#popup-contacto').children('.popup').show();
+        $('#popup-contacto').addClass("active");
+    });
+
+    // Popup Call Me / Cerrar
+    $(document).on('click', '#popup-callme button.close', function () {
+        $('.modal-callme .modalWrap').hide();
+        $('#popup-callme').removeClass("active");
+    });
+    // Popup Contacto / Cerrar
+    $(document).on('click', '#popup-contacto button.close', function () {
+        $('.modal-callme .modalWrap').hide();
+        $('#popup-contacto').removeClass("active");
+    });
+    // Popup Telefono / Cerrar
+    $(document).on('click', '#popup-telefono button.close', function () {
+        $('#popup-telefono .popup-tf').hide();
+        $('#popup-telefono').removeClass("active");
+    });
+}
+function getTypeMovil() {
+    var md = new MobileDetect(window.navigator.userAgent);
+    var type = md.os();
+
+    return type;
+}
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+function bindAppCartQuantity() {
+    try {
+        if (customapp || getCookie("customapp") == 1) {
+            $(window).on('orderFormUpdated.vtex', function (evt, orderForm) {
+                var nItems = orderForm.items.length;
+                parent.postMessage("cart-" + nItems, "*");
+            });
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+function hideElementApp() {
+    try {
+        var head = document.getElementsByTagName('head')[0];
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = 'header .staticHeaderMobileNew .containerHeadMobile .rightBoxMenuMobile .boxcartMobile, .container-footer-mobile, .formulario-light-box .Lightbox-bienvenida, #wpnPushdialogid, #btncallme, #btncallme .img-tel, .cart-menu-mobile, .body-menu-mobile .botones-inferiores {display: none; }';
+        head.appendChild(style);
+    } catch (e) {
+        console.log(e);
+    }
+}
+function hideElementAppIOS() {
+    try {
+        var head = document.getElementsByTagName('head')[0];
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = '#returnToTop {display: none !important; }';
+        head.appendChild(style);
+    } catch (e) {
+        console.log(e);
+    }
+}
+function addElementAppIOS(){
+    try {
+        var head = document.getElementsByTagName('head')[0];
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = 'html{margin:0; height: 100%; overflow: hidden;}.body_product .boton-fixed-movil{width: 100%;}.body_product{ height: 100%; overflow: auto; -webkit-overflow-scrolling: touch; }';
+        head.appendChild(style);
+    } catch(e){
+        console.log(e);
+    }
+}
+/*Carrito desplegable Mobile y botones cantidad Desktop*/
+var objPrincipal={
+    currency : function(value, decimals, separators) {
+        //formateadro de precios
+        if(value){
+            value = value.toString().slice(0, -2);
+            decimals = decimals >= 0 ? parseInt(decimals, 0) : 2;
+            separators = separators || ['.', "'", ','];
+            var number = (parseFloat(value) || 0).toFixed(decimals);
+            if (number.length <= (4 + decimals))
+                return number.replace('.', separators[separators.length - 1]);
+            var parts = number.split(/[-.]/);
+            value = parts[parts.length > 1 ? parts.length - 2 : 0];
+            var result = value.substr(value.length - 3, 3) + (parts.length > 1 ?
+                separators[separators.length - 1] + parts[parts.length - 1] : '');
+            var start = value.length - 6;
+            var idx = 0;
+            while (start > -3) {
+                result = (start > 0 ? value.substr(start, 3) : value.substr(0, 3 + start))
+                    + separators[idx] + result;
+                idx = (++idx) % 2;
+                start -= 3;
+            }
+            return (parts.length == 3 ? '-' : '') + result;
+        }
+        else{
+            return 'No disponible';
+        }
+    },
+    removeItems: function () {
+        //funcion que remueve el item del minicart
+        var itemIndex = $(this).closest('.divProductoCartMobile').attr('id');
+        var quantity = parseInt($(this).closest('.divProductoCartMobile').find('.spanCantidad').text());
+        vtexjs.checkout.getOrderForm().then(function (orderForm) {
+            var itemsToRemove = [
+                {
+                    "index": itemIndex,
+                    "quantity": quantity
+                }
+            ]
+            return vtexjs.checkout.removeItems(itemsToRemove);
+        }).done(function (orderForm) {
+            $(".boxcartMobile a").attr("class","CartMobileClosed");
+            $("#minicart-mobile").remove();
+            handleCartMobile();
+        });
+    },
+    updateItems: function (e) {
+        //funcion que agrega cantidad de items en el minicart
+        var element=$(this);
+        var itemIndex = $(this).closest('.divProductoCartMobile').attr('id');
+        var precioTotalPrev=null;
+        var operacion=e.target.dataset.type;
+        var quantity=null;
+        if(operacion==="plus"){
+            quantity = parseInt($(this).closest('.divProductoCartMobile').find('.spanCantidad').text())+1;
+        }else{
+            quantity = parseInt($(this).closest('.divProductoCartMobile').find('.spanCantidad').text())-1;
+        }
+        vtexjs.checkout.getOrderForm().then(function (orderForm) {
+                precioTotalPrev=orderForm.value;
+                var updateItem = {
+                    index: itemIndex,
+                    quantity: quantity.toString()
+                };
+                return vtexjs.checkout.updateItems([updateItem], null, false);
+            })
+            .done(function (orderForm) {
+                var isCantidadSumada=true;
+                if(precioTotalPrev==orderForm.value){
+                    isCantidadSumada=false;
+                }
+                $(".boxcartMobile a").attr("class","CartMobileClosed");
+                $("#minicart-mobile").remove();
+                handleCartMobile(isCantidadSumada,itemIndex);
+            });
+    },
+    updateItemsDesktop: function (e){
+        var operacion=e.target.dataset.type;
+        var indexObtenido=e.target.dataset.field;
+        var precioTotalPrev=null;
+        var cantidad=null;
+        var esteElemento=$(this);
+        if(operacion==="plus"){
+            cantidad = parseInt($(this).closest('td').find('.spanCantidad').text())+1;
+        }else{
+            cantidad = parseInt($(this).closest('td').find('.spanCantidad').text())-1;
+            if(cantidad==0){
+                $(".rowDataItem").get(indexObtenido).remove();
+            }
+        }
+
+        vtexjs.checkout.getOrderForm().then(function (orderForm) {
+                precioTotalPrev=orderForm.value;
+                var updateItem = {
+                    index: indexObtenido.toString(),
+                    quantity: cantidad.toString()
+                };
+                return vtexjs.checkout.updateItems([updateItem], null, false);
+            })
+            .done(function (orderForm) {
+                if(precioTotalPrev!=orderForm.value){
+                    esteElemento.closest('td').find('.spanCantidad').text(cantidad);
+                }else{
+                    var parrafoErrorCantidad=$("<p>").attr("class","parrafoErrorCantidad").text("Cantidad no disponible").appendTo(esteElemento.closest('td').find('.qtyProduct'));
+                    setTimeout(function(){
+                        $('.parrafoErrorCantidad').remove();
+                    }, 2000);
+                }
+                $(".totalOrder p").text("Total: $ "+objPrincipal.currency((orderForm.value), 0, ''));
+                $(".content-infoTotal-cart .infoValue .infoTotalValue").text(objPrincipal.currency((orderForm.value), 0, ''));
+            });
+    },
+    removeItemsDesktop: function(e){
+        var miTarget=null;
+        if(e.target.nodeName==="IMG"){
+            miTarget=e.target.closest('button');
+        }else{
+            miTarget=e.target;
+        }
+        var itemIndex = miTarget.dataset.type;
+        var quantity = parseInt($(this).closest('.td').find('.spanCantidad').text());
+        vtexjs.checkout.getOrderForm().then(function (orderForm) {
+            var itemsToRemove = [
+                {
+                    "index": itemIndex,
+                    "quantity": quantity
+                }
+            ]
+            return vtexjs.checkout.removeItems(itemsToRemove);
+        }).done(function (orderForm) {
+            $(".rowDataItem").get(itemIndex).remove();
+            $(".totalOrder p").text("Total: $ "+objPrincipal.currency((orderForm.value), 0, ''));
+            $(".content-infoTotal-cart .infoValue .infoTotalValue").text(objPrincipal.currency((orderForm.value), 0, ''));
+        });
+    }
+}
+function titleCase(str) {
+    var splitStr = str.toLowerCase().split(' ');
+    for (var i = 0; i < splitStr.length; i++) {
+        splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+    }
+    return splitStr.join(' ');
+}
+function handleCartMobile(isCantidadSumada, itemIndex){
+    var boxcartMobile=$(".boxcartMobile");
+    var aCarrito=$(".boxcartMobile a");
+    var estadoCartMobile=aCarrito.attr("class");
+
+    if(estadoCartMobile==="CartMobileClosed"){
+        $('header .staticHeaderMobileNew').addClass('openCheckout');
+        $("#oct8ne-alerts-numbers-wrapper").css("z-index","0");
+        $("#btncallme").css("z-index","0");
+        $("#livechat-wrapper").css("z-index","0");
+        $("body").css("overflow","hidden");
+        $(".boxcartMobile a").attr("class","CartMobileOpened");
+
+        //Quitar banner APP si está abierto
+        if($("#app_advertise_fixed").length>0){
+            var staticHeaderMobileNew=$(".staticHeaderMobileNew.test-Seo");
+            staticHeaderMobileNew.removeClass();
+            staticHeaderMobileNew.addClass("staticHeaderMobileNew test-Seo");
+            $("#app_advertise_fixed").css("display","none");
+        }
+
+        //Crear y añadir carrito al a
+        var divCarrito = $("<div>").attr("id", "minicart-mobile").appendTo(boxcartMobile);
+        divCarrito.css("overflow","hidden auto");
+
+        var divWrapperCarrito=$("<div>").attr("id", "minicart-wrapper").appendTo(divCarrito);
+
+        var divHeaderCarrito=$("<div>").attr("id", "minicart-header").appendTo(divWrapperCarrito);
+
+        var spanLeftHeaderCarrito=$("<span>").attr("id", "div-left-header-carrito").appendTo(divHeaderCarrito);
+        var spanCarrito= $("<span>").text("Mi bolsa").appendTo(spanLeftHeaderCarrito);
+        spanCarrito.attr("id","spanCarrito");
+        var iconoCarrito=$("<img>").attr("src", "/arquivos/MinicartIcon.png").appendTo(spanLeftHeaderCarrito);
+
+        var imgCerrar=$("<img>").attr({"id":"cerrarMinicart","src":"/arquivos/CerrarMinicart.png"}).click(handleCartMobile).appendTo(divHeaderCarrito);
+
+        var anchoPorcentaje=($(window).width()*0.84);
+        var altoPorcentaje=($(window).height()*0.97);
+
+        divCarrito.width(anchoPorcentaje);
+        divCarrito.height(altoPorcentaje);
+        divWrapperCarrito.height(altoPorcentaje);
+
+        //Obtener elementos añadidos al carrito
+        var precioTotalCarroMobile=0;
+
+        var divProductosCarrito=$("<div>").attr("id", "minicart-products").appendTo(divWrapperCarrito);
+
+        vtexjs.checkout.getOrderForm().done(function(orderForm){
+            for(var i=0;i<orderForm.items.length;i++){
+                var divProducto=$("<div>").attr({"class":"divProductoCartMobile","id":i});
+
+                var divProductoTop=$("<div>").attr("class","divProductoTop").appendTo(divProducto);
+
+                var imgProducto=$("<img>").attr({"src": orderForm.items[i].imageUrl,"class":"imgProductoCartMobile"}).appendTo(divProductoTop);
+
+                var divInfoProducto=$("<div>").attr("class","divInfoProductoCartMobile").appendTo(divProductoTop);
+                var tituloProducto=$("<span>").attr("class","tituloProductoCartMobile").text(titleCase(orderForm.items[i].name)).appendTo(divInfoProducto);
+
+                var precio_regular = objPrincipal.currency((orderForm.items[i].listPrice*orderForm.items[i].quantity), 0, '');
+                var precio_con_descuento = objPrincipal.currency((orderForm.items[i].price*orderForm.items[i].quantity), 0, '');
+                precioTotalCarroMobile+=orderForm.items[i].listPrice*orderForm.items[i].quantity;
+
+                var parrafoPrecios=$("<p>").attr("class","parrafoPreciosProductoCartMobile").appendTo(divInfoProducto);
+
+                if(precio_regular!=precio_con_descuento){
+                    var precioDescuentoProducto=$("<span>").attr("class","precioDescuentoProductoCartMobile").text("$"+precio_con_descuento).appendTo(parrafoPrecios);
+                    var precioRegularProducto=$("<span>").attr("class","precioRegularProductoCartMobile").text("$"+precio_regular).appendTo(parrafoPrecios);
+                }else{
+                    var precioDescuentoProducto=$("<span>").attr("class","precioDescuentoProductoCartMobile").text("$"+precio_con_descuento).appendTo(parrafoPrecios);
+                    var precioRegularProducto=$("<span>").attr("class","precioRegularProductoCartMobile").text("").appendTo(parrafoPrecios);
+                }
+
+                //Cantidad
+                var divCantidad=$("<div>").attr("class","divCantidadCartMobile");
+                divBotonesCantidad=$("<div>").attr("class","divBotonesCantidadCartMobile").appendTo(divCantidad);
+
+                var buttonRestarCantidad=$("<button>").attr({"class":"botonCantidad","data-type":"minus","data-field":"mquant["+i+"]"})
+                    .click(objPrincipal.updateItems)
+                    .text("-")
+                    .appendTo(divBotonesCantidad);
+
+                var spanCantidad=$("<span>").attr({"class":"spanCantidad","id":"spanCantidad"+i})
+                    .text(orderForm.items[i].quantity)
+                    .appendTo(divBotonesCantidad);
+
+                var buttonSumarCantidad=$("<button>").attr({"class":"botonCantidad","data-type":"plus","data-field":"mquant["+i+"]"})
+                    .click(objPrincipal.updateItems)
+                    .text("+")
+                    .appendTo(divBotonesCantidad);
+
+                var buttonRemoveItems=$("<button>").attr("class","eliminarButton")
+                    .click(objPrincipal.removeItems)
+                    .appendTo(divBotonesCantidad);
+                var imgRemoveItems=$("<img>").attr("src","/arquivos/borrar-item-desplegable.png").appendTo(buttonRemoveItems);
+
+                if(!isCantidadSumada && i==itemIndex){
+                    var parrafoErrorCantidad=$("<p>").attr("class","parrafoErrorCantidad").text("Cantidad no disponible").appendTo(divProducto);
+                    setTimeout(function(){
+                        $('.parrafoErrorCantidad').remove();
+                    }, 2000);
+                }
+
+                divCantidad.appendTo(divInfoProducto);
+
+                divProducto.appendTo(divProductosCarrito);
+            }
+            divFooterCarrito=$("<div>").attr("id", "minicart-footer").appendTo(divWrapperCarrito);
+            if(orderForm.items.length<3){
+                divFooterCarrito.css("position","absolute")
+            }else{
+                divFooterCarrito.css("position","sticky")
+            }                                  
+
+            //Pintar total items y total precio
+            var divTotales=$("<div>").attr("id", "minicart-totales").appendTo(divFooterCarrito);
+
+            var divTotalesIzquierda=$("<div>").attr("id", "divTotalesIzquierda").appendTo(divTotales);
+            var spanTextoItems=$("<span>").attr("id", "spanTextoItems").text("ITEMS: ").appendTo(divTotalesIzquierda);
+            var spanTotalItems=$("<span>").attr("id", "spanTotalItems").text(orderForm.items.length).appendTo(divTotalesIzquierda);
+
+            var divTotalesDerecha=$("<div>").attr("id", "divTotalesDerecha").appendTo(divTotales);
+            var spanTextoItems=$("<span>").attr("id", "spanTextoPrecio").text("TOTAL: ").appendTo(divTotalesDerecha);
+
+            if(objPrincipal.currency((precioTotalCarroMobile), 0, '')==="No disponible"){
+                var spanTotalItems=$("<span>").attr("id", "spanTotalPrecio").text("$0")
+                    .appendTo(divTotalesDerecha);
+            }else{
+                var spanTotalItems=$("<span>").attr("id", "spanTotalPrecio").text("$"+objPrincipal.currency((precioTotalCarroMobile), 0, ''))
+                    .appendTo(divTotalesDerecha);
+            }
+             //Pintar ENVIO GRATIS
+             var divEnvio = '';
+             divEnvio += '<div class="content-envio-percent">';
+             divEnvio += '<div class="pending-envio">';
+             divEnvio += '<div class="barraMedidora">';
+             divEnvio += '<span class="tituloBarra">ENVIO GRATIS</span>';
+             divEnvio += '<span class="valorMenor">$00.000</span>';
+             divEnvio += '<div class="contenedorcantidad">';
+             divEnvio += '<div class="barraCantidad"></div>';
+             divEnvio += '</div>';
+             divEnvio += '<span class="ValorMaximo">$130.000</span>';
+             divEnvio += '</div>';
+             divEnvio += '</div>';
+             divEnvio += '<div class="envio-gratis-full"></div>';
+             divEnvio += '<div class="envio-gratis"> ';
+             divEnvio += '<span class="tituloDescuentoNO" style="display: block;"></span>';
+             divEnvio += '<span class="tituloDescuentoSI" style="display: none;"><strong>¡FELICIDADES!</strong> Ya tienes <strong>ENVÍO GRATIS</strong></span>';
+             divEnvio += '</div>';
+             divEnvio += '</div>';
+                                    
+             $('#minicart-totales').before(divEnvio);     
+            if (orderForm.totalizers.length == 0) {
+                totalP = orderForm.value/100;
+            } else {
+                totalP = orderForm.totalizers[0].value/100;
+            } 
+             
+            var totalPendiente = 130000-parseInt(totalP);        
+
+            var porcentaje = ( parseInt(totalP) / 130000 )*100;
+            //var porcentaje = 100;
+
+            $('.barraCantidad').animate({
+                width: porcentaje+'%'
+            }, 500, function(){
+                $('.barraCantidad').fadeIn(500);
+            });
+
+            if (parseInt(totalP) >= 130000) {
+                $('.tituloDescuentoSI').css('display','block');
+                $('.tituloDescuentoNO').css('display','None');
+            }else{
+                $('.tituloDescuentoSI').css('display','none');
+                $('.tituloDescuentoNO').empty().append('Faltan <strong>$'+(totalPendiente/1000).toFixed(3)+'</strong> para tu <strong>ENVÍO GRATIS</strong>');
+                $('.tituloDescuentoNO').css('display','block');
+            }
+            if (orderForm.totalizers.length == 0) {
+                $('.subtotal-mini').text('$ ' + objPrincipal.currency(orderForm.value, 0, ''))
+            } else {
+                $('.subtotal-mini').text('$ ' + objPrincipal.currency(orderForm.totalizers[0].value, 0, ''))
+            }
+            //Botón finalizar compra
+            var divFinalizar=$("<div>").attr("id", "divFinalizar").appendTo(divFooterCarrito);
+            var aFinalizar=$("<a>").attr("href","/checkout").text("FINALIZAR COMPRA").appendTo(divFinalizar);
+        })
+
+    }else{
+        if($("#app_advertise_fixed").length>0){
+            var staticHeaderMobileNew=$(".staticHeaderMobileNew.test-Seo");
+            staticHeaderMobileNew.removeClass();
+            staticHeaderMobileNew.addClass("staticHeaderMobileNew test-Seo with-faja");
+            $("#app_advertise_fixed").css("display","block")
+        }
+
+        $("body").css("overflow","scroll");
+        $("#oct8ne-alerts-numbers-wrapper").css("z-index","3");
+        $("#btncallme").css("z-index","2");
+        $("#livechat-wrapper").css("z-index","3");
+        $('header .staticHeaderMobileNew').removeClass('openCheckout');
+        $(".boxcartMobile a").attr("class","CartMobileClosed");
+        $("#minicart-mobile").remove();
+    }
+    return false;
+}
+
+var ciudadesPrincipales = [
+    91001,
+    5001,
+    81001,
+    8001,
+    13001,
+    15001,
+    17001,
+    18001,
+    85001,
+    19001,
+    20001,
+    27001,
+    23001,
+    11001,
+    94001,
+    95001,
+    41001,
+    44001,
+    47001,
+    50001,
+    52001,
+    54001,
+    86001,
+    63001,
+    66001,
+    88001,
+    68001,
+    70001,
+    73001,
+    76001,
+    97001,
+    99001
+]
+function pintarEnvioACiudades(){
+    var ciudadesPatprimo = [];
+    var allData = [];
+    var tiempoInfo = [];
+    $.ajax({
+        "url": "/api/logistics/pvt/configuration/freights/1d2ec1a/0/values?an=patprimo",
+        "headers": {
+            "X-VTEX-API-AppToken": "YOSFWLTYBITMUCUTSYUXVEKGAHXZBMXFAHKYYGTNWRCQXMOFIHELGTXUDLEOOUWPKOLMRVVMFHADBUJOTRQTHMYHKPVNCEYCUMFIABNMMSGZSTSIBPVWDCHYPEBCAHKA",
+            "X-VTEX-API-AppKey": "vtexappkey-patprimo-JLYKXT"
+        },
+    }).done(function (response) {
+        ciudadesPatprimo = Array.from(new Set(response.map(s => s.zipCodeEnd)))
+        .map(zipCodeEnd => {
+            return {
+                dane: zipCodeEnd,
+                timeCost: response.find(s => s.zipCodeEnd === zipCodeEnd).timeCost.split('.')[0]
+            };
+        });
+    });
+    $.ajax({
+        "url": "https://www.datos.gov.co/resource/xdk5-pm3f.json",
+        "data": {
+          "$limit" : 5000,
+        }
+    }).done(function(data) {
+        allData = data;
+    });
+    $.ajax({
+        "url": "/api/dataentities/TE/search?_fields=diasIntervalo,tiempoBodega",
+        "headers" : {
+            "Content-Type" : "application/json",
+            "Accept" : "application/vnd.vtex.ds.v10+json",
+        }
+    }).done(function(data){
+        if(typeof data[0] != "undefined"){
+            tiempoInfo = data;
+        }
+    });
+    var interval = setInterval(function(){
+        if(ciudadesPatprimo.length > 0 && allData.length > 0 && tiempoInfo.length > 0){
+            ciudadesPatprimo.forEach(function(v,i){
+                var finded = allData.filter(i => i.c_digo_dane_del_municipio == v.dane)[0];
+                if(typeof finded != "undefined" ){
+                    v.departamento = finded.departamento;
+                    v.municipio = finded.municipio;
+                }
+            });
+            ciudadesPatprimo.sort(function(a, b) {
+                return a.departamento.localeCompare(b.departamento) || a.municipio.localeCompare(b.municipio);
+            });
+            ciudadesPatprimo.forEach(function(v,i){
+                var capital = ciudadesPrincipales.filter( i => i == v.dane)[0];
+                var desde = parseInt(v.timeCost) + parseInt(tiempoInfo[0].tiempoBodega);
+                var hasta = parseInt(v.timeCost) + parseInt(tiempoInfo[0].diasIntervalo) + parseInt(tiempoInfo[0].tiempoBodega)
+                if(typeof capital != "undefined"){
+                    $('#ciudades-capitales tbody').append("<tr>"+
+                    "<td nowrap valign='bottom'><p>"+v.municipio+"</p></td>"+
+                    "<td nowrap valign='bottom'><p> Entre "+desde+" y "+hasta+" días hábiles</p></td>"+
+                    "</tr>");
+                }
+                $("#tiempos-de-entrega tbody")
+                .append("<tr>"+
+                "<td nowrap valign='bottom' ><p>"+v.dane+"</p></td>"+
+                "<td nowrap valign='bottom'><p>"+v.departamento+"</p></td>"+
+                "<td nowrap valign='bottom'><p>"+v.municipio+"</p></td>"+
+                "<td nowrap valign='bottom'><p> Entre "+desde+" y "+hasta+" días hábiles</p></td>"+
+                "</tr>");
+            })
+            if($('#ciudades-capitales tbody td').length > 0 && $('#ciudades-capitales .tablesorter-headerUnSorted').length == 0){
+                $('#ciudades-capitales').tablesorter();
+                $('#ciudades-capitales').find('th:first-child').trigger('sort');
+            }
+            clearInterval(interval);
+        }
+    },100)
+}
+function pintarEnvioACiudadesContraentrega(){
+    var ciudadesPatprimo = [];
+    var allData = [];
+    var tiempoInfo = [];
+    $.ajax({
+        "url": "/api/logistics/pvt/configuration/freights/1bba288/0/values?an=patprimo",
+        "headers": {
+            "X-VTEX-API-AppToken": "YOSFWLTYBITMUCUTSYUXVEKGAHXZBMXFAHKYYGTNWRCQXMOFIHELGTXUDLEOOUWPKOLMRVVMFHADBUJOTRQTHMYHKPVNCEYCUMFIABNMMSGZSTSIBPVWDCHYPEBCAHKA",
+            "X-VTEX-API-AppKey": "vtexappkey-patprimo-JLYKXT"
+        },
+    }).done(function (response) {
+        ciudadesPatprimo = Array.from(new Set(response.map(s => s.zipCodeEnd)))
+        .map(zipCodeEnd => {
+            return {
+                dane: zipCodeEnd,
+                timeCost: response.find(s => s.zipCodeEnd === zipCodeEnd).timeCost.split('.')[0]
+            };
+        });
+    });
+    $.ajax({
+        "url": "https://www.datos.gov.co/resource/xdk5-pm3f.json",
+        "data": {
+          "$limit" : 5000,
+        }
+    }).done(function(data) {
+        allData = data;
+    });
+    $.ajax({
+        "url": "/api/dataentities/TE/search?_fields=diasIntervalo,tiempoBodega",
+        "headers" : {
+            "Content-Type" : "application/json",
+            "Accept" : "application/vnd.vtex.ds.v10+json",
+        }
+    }).done(function(data){
+        if(typeof data[0] != "undefined"){
+            tiempoInfo = data;
+        }
+    });
+    var interval = setInterval(function(){
+        if(ciudadesPatprimo.length > 0 && allData.length > 0 && tiempoInfo.length > 0){
+            ciudadesPatprimo.forEach(function(v,i){
+                var finded = allData.filter(i => i.c_digo_dane_del_municipio == v.dane)[0];
+                if(typeof finded != "undefined" ){
+                    v.departamento = finded.departamento;
+                    v.municipio = finded.municipio;
+                }
+            });
+            ciudadesPatprimo.sort(function(a, b) {
+                return a.departamento.localeCompare(b.departamento) || a.municipio.localeCompare(b.municipio);
+            });
+            ciudadesPatprimo.forEach(function(v,i){
+                var desde = parseInt(v.timeCost) + parseInt(tiempoInfo[0].tiempoBodega);
+                var hasta = parseInt(v.timeCost) + parseInt(tiempoInfo[0].diasIntervalo) + parseInt(tiempoInfo[0].tiempoBodega)
+                $("#tiempos-de-entrega-contraentrega tbody")
+                .append("<tr>"+
+                "<td nowrap valign='bottom' ><p>"+v.dane+"</p></td>"+
+                "<td nowrap valign='bottom'><p>"+v.departamento+"</p></td>"+
+                "<td nowrap valign='bottom'><p>"+v.municipio+"</p></td>"+
+                "<td nowrap valign='bottom'><p> Entre "+desde+" y "+hasta+" días hábiles</p></td>"+
+                "</tr>");
+            })
+            clearInterval(interval);
+        }
+    },100)
+}
+
+function dispHover() {
+    setTimeout(function(){
+        $(".productShelf").each(function() {
+            var itemId = $(this).attr("id");
+            var colorDiv = $(this).find('colors');
+            callImages(itemId);
+            //callColors(itemId);
+        });
+        $('.productShelf .cant-colors').off('click').unbind('click').click(function(e){
+            $('.content-colors').removeClass('show');
+            $(this).siblings('.content-colors').addClass('show');
+        });
+    },300);
+}
+function callImages(itemId) {
+    vtexjs.catalog.getProductWithVariations(itemId).done(function(product) {
+        var cantColor = product.dimensionsMap.Color
+        if (cantColor != null) {
+            var cant = Object.keys(cantColor).length;
+            if (cant > 1) {
+                //$('#' + product.productId + ' .more-colors').remove();
+                //$('#' + product.productId + ' .linkTitle').after('<span class="more-colors" style="font-size:11px;display:block">+' + cant + ' colores</span>');
+                //var cartaColor = product.dimensionsMap["Carta Color"];
+                var colors = product.dimensionsMap['Color'];
+                var skus = product.skus;
+
+                /*var cartaColor = colors.map( (v,i) =>  (skus.find( i => i.dimensions['Carta Color'] == v && i.available == true)) !== undefined && colors[i] ).filter( v => v!== false);*/
+                if ( colors !== undefined ){
+                    var cartaColor = colors.map( function(v,i){
+                        return skus.find( function(i){
+                            return i.dimensions['Color'] == v && i.available == true}) !== undefined && colors[i]
+                        }).filter( function(v){
+                            return v !== false
+                        });
+                    cartaColor.length > 1 && $('[data-productid='+itemId+'] ~ .cant-colors p').length == 0 ? $('[data-productid='+itemId+'] ~ .cant-colors').show().append('<p>+'+cartaColor.length+' COLORES</p>') : "";
+                    cartaColor.length > 1 ? "" : $('#' + itemId + ' .more-colors,#'+ itemId + ' .content-colors').remove();
+                    var array = new Array();
+                    var colores = new Array();
+                    var width = "120";
+                    var height = "auto";
+                    var widthPrincipal = "547";
+                    var heightPrincipal = "742";
+                    var urlProduct = $('#'+itemId+'.productShelf').find('.imageShelf').attr('href').split('.com')[1];
+                    $.each(skus,function (index, value) {
+                        if (colores.indexOf(value['dimensions']['Color']) == -1 && cartaColor.indexOf(value["dimensions"]["Color"]) != -1 && value['available'] ) {
+                            colores[colores.length] = value['dimensions']['Color'];
+                            
+                            var arra = {
+                                'src': value['image'],
+                                'title': value['skuname'],
+                                'alt': value['skuname'],
+                                'width': width,
+                                'height': height,
+                                'data-value' : value['sku'],
+                                'href' : urlProduct+"?idsku="+value['sku'],
+                                'sku' : value['sku'],
+                                'color' : value['dimensions']['Carta Color']
+                            };
+                            array[array.length] = arra;
+                        }
+                    });
+                    if (cartaColor != undefined && $('.content-colors[data-productid='+itemId+']').find('.thumbnails-box > .thumbs').length == 0 && cartaColor.length > 1) {
+                        /*var customHtml = '<ul>';
+                        cartaColor.forEach(function(e, i) {
+                            customHtml += '<li class="sr_' + e + '"></li>';
+                        });
+                        customHtml += '</ul>';
+                        if (!$(".content-colors[data-productId=" + product.productId + "] ul").length) {
+                            $(".content-colors[data-productId=" + product.productId + "]").append(customHtml);
+                        }*/
+                        var output = build_thumbs(array, true);
+                        $.each(array, function( index, value ) {
+                            if(typeof value['sku'] != "undefined"){
+                                $('#'+itemId+'.productShelf').find('.imageShelf').append('<span class="imgSkus" style="display:none"><a href="'+urlProduct+"?idsku="+value['sku']+'" target="_blank"><img src="'+value['src']+'" img-value="'+value['data-value']+'" width="'+widthPrincipal+'" height="'+heightPrincipal+'" alt="'+value['alt']+'" title="'+value['title']+'" /></a></span>');
+                            }
+                        });
+
+                        if($('.content-colors[data-productid='+itemId+']').find('.thumbnails-box > .thumbs').length == 0){
+                            //$('.box-item[data-id='+idProduct+']').append(preOutput);
+                            $('.content-colors[data-productid='+itemId+']').find('.thumbnails-box').append(output);
+                            $('.content-colors[data-productid='+itemId+']').find('.thumbnails-box').addClass('witems');
+                            /*$('.content-colors[data-productid='+itemId+']').find('.thumbnails-box .thumbs').owlCarousel({
+                                autoplay: false,
+                                margin:5,
+                                autoplayTimeout:5000,
+                                autoplayHoverPause:false,
+                                navigationText: ['<i class="fa fa-chevron-left"></i>"," <i class="fa fa-chevron-right"></i>'],
+                                nav: true,
+                                dots: false,
+                                responsive:{
+                                    0:{
+                                        items:10,
+                                        nav:true
+                                    },
+                                }
+                            });*/
+                            $('.content-colors[data-productid='+itemId+']').find('.thumbnails-box .thumbs .item')
+                            .mouseenter(function(){
+                                var imgToShow = $(this).find('img').attr('data-value');
+                                $('img[img-value='+imgToShow+']').parent('a').parent('span').addClass('active-show')
+                                $('img:not([img-value='+imgToShow+'])').parent('a').parent('span').css('display','none');
+                            }).mouseleave(function(){
+                                var imgToShow = $(this).find('img').attr('data-value');
+                                $('img[img-value='+imgToShow+']').parent('a').parent('span').removeClass('active-show')
+                            });
+                            $('.content-colors[data-productid='+itemId+']').find('.thumbnails-box .thumbs .item').click(function(e){
+                                e.preventDefault();
+                                console.log("click - hover");
+                                var imgToShow = $(this).find('img').attr('data-value');
+                                $('img[img-value='+imgToShow+']').parent('a').parent('span').css('display','block');
+                                $('img:not([img-value='+imgToShow+'])').parent('a').parent('span').css('display','none');
+                        });                        
+                    }
+                        //$('.content-colors[data-productid='+itemId+']').prependTo($('#'+itemId+'.productShelf').find('.contem-bottom'));
+                    }
+                }
+            }else{
+                $('#' + product.productId + ' .more-colors,#'+ product.productId + ' .content-colors').remove();
+            }
+        }
+    });
+}
+function vermas(){
+    $('.estrutura-h2 .buttom-ver').click(function(e){
+        e.preventDefault();
+        $(this).parents().toggleClass('show');
+        $('.estructura-hs-extra').toggleClass('show');
+
+    });
+}
+function clickOpenClose(){
+    
+    $('.cart').hover(function(e){        
+        $(this).addClass('show');   
+        $(this).removeClass('noshow');      
+        console.log('object1');
+    });
+    $('.cart .resumenCarrito #cerrarMinicart').click(function(e){        
+        $(this).parents('.cart').removeClass('show');   
+        $(this).parents('.cart').addClass('noshow');     
+        console.log('object2');
+    });
+}
+
+function callColors(itemId) {
+    vtexjs.catalog.getProductWithVariations(itemId).done(function (product) {
+        var cantColor = product.dimensionsMap.Color
+        if (cantColor != null) {
+            var cant = Object.keys(cantColor).length;
+            if (cant > 1) {
+                $('#' + product.productId + ' .more-colors').remove();
+                $('#' + product.productId + ' .linkTitle').after('<span class="more-colors" style="font-size:11px;display:block">+' + cant + ' colores</span>');
+                var cartaColor=product.dimensionsMap["Carta Color"];
+                if (cartaColor != undefined){
+                    var customHtml='<ul>';
+                    cartaColor.forEach(function(e,i){
+                        customHtml+='<div class="contenedor-li"><li class="sr_'+e+'"></li></div>';
+                    });
+                    customHtml+='</ul>';
+                    if (!$(".content-colors[data-productId="+product.productId+"] ul").length){
+                        $(".content-colors[data-productId="+product.productId+"]").append(customHtml);
+                    }
+                }
+            }
+        }
+    });
+}
+
+function build_thumbs(images, is_slider, class_, identifier, slider_options ,add){
+    var self_build_thumbs = this;
+    if(add == undefined){
+        add = true;
+    }
+    if(identifier == undefined){
+        identifier = false;
+    }
+
+    var container_class = false;
+    var child_class = false;
+
+    if(typeof class_ != "undefined"){
+        if(typeof class_['container'] == "undefined"){
+            container_class = false;
+        }else{
+            container_class = class_['container'] ;
+        }
+        if(typeof class_['child'] == "undefined"){
+            child_class = false;
+        }else{
+            child_class = class_['child'];
+        }
+    }
+    if(slider_options == undefined){
+        slider_options = false;
+    }
+    if(is_slider == undefined){
+        is_slider = false;
+    }
+
+    if(add != false){
+        var output = '<div '+(( identifier != false ) ? 'id="' + identifier + '"' : "")+' class="thumbs '+(( is_slider != false ) ? " " : " ")+' '+(( container_class != false ) ? container_class : " ")+'">';
+    }else{
+        var output = '';
+    }
+
+    if(Object.keys(images).length > 0 && Object.keys(images)[1] == "1"){
+        $.each(images, function( index, value ) {
+            var array={
+                'src': value['src'],
+                'title': value['title'],
+                'alt': value['alt'],
+                'width': value['width'],
+                'height': value['height'],
+                'data-value': value['data-value'],
+                'href': value['href'],
+                'color' : value['color']
+            };
+            output += self_build_thumbs.build_thumbs(array,is_slider, class_, identifier, slider_options,false);
+        });
+    }else{
+
+        if (!isNaN(Object.keys(images))){
+            images = images[0]
+        }
+        var array={
+            'src': '"'+images['src'].replace(/(h[^-]*[^-]*-)[0-9\-]([^/]*)(\/.*)/,'$1'+images['width']+'-'+images['height']+'$3')+'"',
+            'title': '"'+images['title']+'"',
+            'alt': '"'+images['alt']+'"',
+            'width': '"'+images['width']+'"',
+            'height': '"'+images['height']+'"',
+            'data-value': images['data-value'],
+            'href' : '"'+images['href']+'"',
+            'color' : ''+images['color']+''
+        };
+
+        if(array['data-value'] == 'undefined'){
+            array['data-value'] = '';
+        }
+
+        if(array['href'] == 'undefined')
+            output += '<div class="item><div class="contenedor-li"><li class="sr_'+array['color']+'"></li></div><img src='+array['src']+' title='+array['title']+' alt='+array['alt']+' width='+array['width']+' height='+array['height']+'  data-value='+array['data-value']+'></div>';
+        else
+            output += '<div class="item"><a href='+array['href']+' target="_blank" title='+array['title']+'><div class="contenedor-li" title='+array['color']+'><li class="sr_'+array['color']+'"></li></div><img src='+array['src']+' title='+array['title']+' alt='+array['alt']+' width='+array['width']+' height='+array['height']+' data-value='+array['data-value']+'></a></div>';
+    }
+    if(add != false){
+        output += '</div>';
+        if($(add).length > 0){
+            $(add).html(output);
+        }
+        if(is_slider != false && identifier != false) {
+            var prev = '';
+            var width = $(window).width();
+            if(slider_options != false){
+                var nbkeys = Object.keys(slider_options.responsive).length;
+                $.each(slider_options.responsive,function( index, value ) {
+                    var each_width = index;
+                    if(nbkeys == 1){
+                        prev = '0';
+                        each_width = '99999';
+                    }else{
+                        if(prev == ''){
+                            prev = index;
+                        }
+                    }
+                    if(width > prev && width <= each_width){
+                        if(value.items == 'undefined' || $(add).find('.item').length > value.items){
+                            $('#'+identifier).owlCarousel(
+                                slider_options
+                            )
+                        }else{
+                            var proper = {
+                                'float' : 'left'
+                            }
+                            if(typeof slider_options.margin != 'undefined'){
+                                proper['margin'] = '0px '+ slider_options.margin + 'px';
+                            }
+                            $(add).find('.item').css(proper);
+                            $(add).find('.owl-carousel').show();
+                        }
+                    }
+                });
+            }
+        }
+    }
+    return output;
+}
+function openDiv(evt, divid) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(divid).style.display = "block";
+    evt.currentTarget.className += " active";
+};

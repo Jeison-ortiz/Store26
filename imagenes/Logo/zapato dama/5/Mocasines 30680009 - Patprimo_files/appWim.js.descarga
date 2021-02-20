@@ -1,0 +1,105 @@
+function pintarBandaApp(){
+    var content = "";
+
+    content='<div id="app_advertise_fixed" style="z-index:100;position:fixed;top: 0px;">\
+                    <div class="content-text-app" onload="delayFunction()" style="width:100%;position: relative;">\
+                    <a id="url_app" href="#" ><img src="/arquivos/Faja-Patprimo-AApp.jpg"></a>\
+                    </div>\
+                    <div id="APPpopupClose" onclick="closePopUpApp()" style=" width:35px;text-align:center;position:absolute;font-size: 20px;top:-2px;right:-8px;color: white;">x\
+                    </div>\
+            </div>';
+    
+    $("body").prepend(content);
+    //setCookie("appOn",1,'7');
+    addClassCabecera();
+    addUrlApp();
+}
+
+function BandaOnlyApp() {
+    var isCustomApp = getCookie('customapp');
+    var showBandOff = getCookie('showBandOff');
+
+    if($('body').hasClass('home') && isCustomApp == 1 && showBandOff != 1) {
+        var content = "";
+
+        content='<div id="app_advertise_fixed" style="z-index:100;position:fixed;top: 0px;">\
+                        <div class="content-text-app" onload="delayFunction()" style="width:100%;position: relative;">\
+                        <a id="url_app" href="https://www.patprimo.com/links-interes/promociones" ><img src="/arquivos/Faja-Patprimo-Only-App.jpg"></a>\
+                        </div>\
+                        <div id="APPpopupClose" onclick="closePopUpAppDiscount()" style=" width:35px;text-align:center;position:absolute;font-size: 20px;top:-2px;right:-8px;color: transparent;cursor: pointer;">x\
+                        </div>\
+                </div>';
+        
+        $("body").prepend(content);
+        //setCookie("appOn",1,'7');
+        addClassCabecera();
+        addUrlApp();
+    }
+}
+
+function delayFunction() {
+    document.getElementById('app_advertise_fixed').delay(5000);
+}
+
+function closePopUpApp() {
+    //setCookie("appOn",1,'7');
+    $("#app_advertise_fixed").remove();
+    removeClassCabecera();
+}
+
+function closePopUpAppDiscount() {
+    setCookie("showBandOff",1,'7');
+    $("#app_advertise_fixed").remove();
+    removeClassCabecera();
+}
+
+function getUrlsApp(type){
+    var url=Array();
+    url["iOS"]='https://itunes.apple.com/es/app/patprimo-tienda-ropa-online/id1446437616';
+    url["AndroidOS"]='https://play.google.com/store/apps/details?id=com.lluraferi.patprimo';
+    url["WindowsPhoneOS"]='';
+    url["WindowsMobileOS"]='';
+
+    return url[type];
+}
+
+function addUrlApp(){
+
+    var md=new MobileDetect(window.navigator.userAgent);
+    var type=md.os();
+    var href_att=getUrlsApp(type);
+
+    console.log('href_att',href_att);
+
+    $("#app_advertise_fixed #url_app").attr("href",href_att);
+}
+
+function addClassCabecera(){
+    $(".homeNew .mainContent").addClass("with-faja");
+    $(".categoryNew .mainContent").addClass("with-faja");
+    $("body.productNew > section.mainContent").addClass("with-faja");
+    $("header .staticHeaderMobileNew").addClass("with-faja");
+    $("header .containerHeadMobile").addClass("with-faja");
+    $(".containerHeadMobile .search").addClass("with-faja");
+    $("header>.containerHeadMobile .search-iconos").addClass("with-faja");
+    $(".departamento-container").addClass("with-faja");
+    $("#block-catalogo-content").addClass("with-faja");
+    $("body.editorial").addClass("with-faja");
+  $("section.mainContent").addClass("with-faja");
+   $(".landing-benficios .pre-header").addClass("with-faja");
+}
+
+function removeClassCabecera(){
+    $(".homeNew .mainContent").removeClass("with-faja");
+    $(".categoryNew .mainContent").removeClass("with-faja");
+    $("body.productNew > section.mainContent").removeClass("with-faja");
+    $("header .staticHeaderMobileNew").removeClass("with-faja");
+    $("header .containerHeadMobile").removeClass("with-faja");
+    $(".containerHeadMobile .search").removeClass("with-faja");
+    $("header>.containerHeadMobile .search-iconos").removeClass("with-faja");
+    $(".departamento-container").removeClass("with-faja");
+    $("#block-catalogo-content").removeClass("with-faja");
+    $("body.editorial").removeClass("with-faja");
+   $("section.mainContent").removeClass("with-faja");
+   $(".landing-benficios .pre-header").removeClass("with-faja");
+}

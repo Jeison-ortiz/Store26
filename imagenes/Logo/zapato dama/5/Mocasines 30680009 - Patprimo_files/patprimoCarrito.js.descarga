@@ -1,0 +1,358 @@
+window.alert = function() {};
+
+//:::::::::::::::::::::::::::: CART ::::::::::::::::::::
+
+$(".closeCart , .addMoreProd").click(function(){
+    $(".mainCartContainer").hide();
+});
+
+$("a.buy-in-page-button").off("click").on("click", addProductToCart);
+
+//REMOVER ALERTA DE COLOR SI SE SELECCIONA
+$('.dimension-Color').click(function(){
+    $('.alertColor').remove();
+});
+
+//REMOVER ALERTA DE TALLA SI SE SELECCIONA
+$('.dimension-Talla').click(function(){
+    $('.alertSize').remove();
+});
+
+
+
+updateQueryStringParameter = function(uri, key, value) {
+    var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+    var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+    if (uri.match(re)) {
+        return uri.replace(re, '$1' + key + "=" + value + '$2');
+    }
+    else {
+        return uri + separator + key + "=" + value;
+    }
+}
+
+
+// Creal el lightbox con el elemento recién añadido.
+crearCarritoLightBox = function(jsonInfo, skuId){
+    var heightVentana = window.innerHeight;
+
+    var heightVentana = (heightVentana-500)/2;
+
+    var blackBoxCart = $(document.createElement('div')).addClass('blackbox');
+    var lightBoxCart = $(document.createElement('div')).addClass('lightbox').css({'margin-top': heightVentana});
+
+    $('body').css({overflow: 'hidden'});
+
+    blackBoxCart.append(lightBoxCart);
+    $('body').append(blackBoxCart);
+
+    crearElementoCarrito(jsonInfo, skuId);
+}
+
+function addProductToCart( event ){
+
+    var checkedColor = $('.item-dimension-Color .checked').length;
+    var checkedSize = $('.item-dimension-Talla .checked').length;
+
+    if($(".group_1 label").length > 1){
+        if(checkedColor == 0){
+            var colorAlert = $(document.createElement('div'));
+            colorAlert.addClass('alertColor');
+            colorAlert.html ("Selecciona el color");
+            colorAlert.animate({
+                opacity:0.2
+            }, 200, function() {
+                $(this).animate({
+                    opacity:1.0,
+                    color: "#C30000"
+                }, 300, function(){
+                    $(this).animate({
+                        opacity: 0.2
+                    }, 200, function(){
+                        $(this).animate({
+                            opacity: 1.0,
+                            color: "#998B7B"
+                        }, 300);
+                    });
+                });
+            });
+            $('.alertColor').empty();
+            $('.Color').append(colorAlert);
+        }
+        else{
+            console.log("NO ALERT COLOR");
+        }
+
+        if(checkedSize == 0){
+            var sizeAlert = $(document.createElement('div'));
+            sizeAlert.addClass('alertSize');
+            sizeAlert.html ("Selecciona la talla");
+            sizeAlert.animate({
+                opacity:0.2
+            }, 200, function() {
+                $(this).animate({
+                    opacity:1.0,
+                    color: "#C30000"
+                }, 300, function(){
+                    $(this).animate({
+                        opacity: 0.2
+                    }, 200, function(){
+                        $(this).animate({
+                            opacity: 1.0,
+                            color: "#998B7B"
+                        }, 300);
+                    });
+                });
+            });
+            $('.alertSize').empty();
+            $('.Talla').append(sizeAlert);
+        }
+        else{
+            console.log("NO ALERT SIZE");
+        }
+    }
+
+    event.preventDefault();
+
+    if(!checkedColor || !checkedSize){
+        console.log("No ha seleccionado el producto.");
+    }
+    else {
+        if(!window.skuJson){
+            console.warn("No se encuentra en página de producto");
+            return;
+        }
+
+        newQty = $(".buy-in-page-quantity").first().val();
+        var selectedColor = $('.item-dimension-Color input.checked').attr("data-value");
+        var selectedSize = $('.item-dimension-Talla input.checked').attr("data-value");
+
+        var productSKU = skuJson.skus.find(function (sku) {
+            return sku.dimensions.Color === selectedColor && sku.dimensions.Talla === selectedSize;
+        });
+
+        if(!productSKU){
+            console.error("No se ha podido encontrar SKU para la combinaciÃƒÂ³n seleccionada");
+            return;
+        }
+
+        var urlAddToCart = "/checkout/cart/add?sku=" + productSKU.sku + "&qty=" + newQty + "&seller=1&redirect=false&sc=1";
+
+        var options = {
+            url: urlAddToCart,
+            type: "get",
+            success: function(data) {
+                vtexjs.checkout.getOrderForm().done(function(orderForm){
+                    crearCarritoLightBox(orderForm, productSKU.sku);
+                });
+            }
+        };
+        jQuery.ajax(options);
+    }
+    return false;
+}
+
+// Crea la estructura para el elemento añadido al carrito.
+crearElementoCarrito = function(data, skuId){
+
+    var numItemsCart = data.items.length;
+
+    var eleAgregadoCart = $(document.createElement('div')).addClass('contentEleAgregado');
+
+    var imgEleAg = $(document.createElement('img'));
+
+    var skuIdAgregado = null;
+    for( i = 0; i < numItemsCart && skuIdAgregado === null ; i++ ){
+        if( data.items[i].id == skuId ){
+            skuIdAgregado = data.items[i];
+        }
+    }
+
+    if(skuIdAgregado === null){
+        skuIdAgregado = skuIdAgregado;
+    }
+
+    var urlImg = skuIdAgregado.imageUrl;
+    urlImg = urlImg.replace('-135-162/', '-379-451/');
+    imgEleAg.attr('src', urlImg).attr('width', '200px').attr('height', '480px');
+
+    var divImg = $(document.createElement('div')).addClass('divImg');
+
+    var tituloCart = $(document.createElement('h2')).addClass('tituloLightbox').html( '<i class="fas fa-check"></i>' + ' PRODUCTO AÑADIDO CORRECTAMENTE A LA BOLSA');
+    var infoEnvioCart = $(document.createElement('div')).addClass('infoEnvioLightbox').text('ENVÍO GRATIS POR COMPRAS SUPERIORES A $130.000. APLICA PARA PAGOS CON TARJETA DE CREDITO Y PSE');
+    // Información del producto añadido
+    var nomProdAg = $(document.createElement('h3')).addClass('nombreProductoAg').text(  (skuIdAgregado.name) );
+
+    var priceItemAg = $(document.createElement('span'));
+    priceItemAg.addClass('precioProductoAg');
+    var precioEleAg = (skuIdAgregado.sellingPrice).toString();
+    precioEleAg = precioEleAg.slice( 0, (precioEleAg.length)-2 );
+    precioEleAg = ponerPuntosDecimales(precioEleAg);
+    priceItemAg.text('Precio: ' + '$'+precioEleAg);
+
+    var cantidadItemAg = $(document.createElement('h5')).addClass('cantidadItemAg').text('Cantidad: '+ (skuIdAgregado.quantity) );
+
+    var wrapperItemAg = $(document.createElement('div')).addClass('wrapperItemAg');
+
+
+    // Información del carrito
+    var titResumenCarrito = $(document.createElement('h3')).addClass('titResumenCarrito').text('');
+
+var articulosCarrito = $(document.createElement('span')).addClass('noArticulosCarrito');
+    if(numItemsCart > 1){
+        articulosCarrito.text(numItemsCart +' artículos');
+    }
+    else {
+        articulosCarrito.text(numItemsCart +' artículo');
+    }
+
+    var valorCartInt = 0;
+    for(i = 0; i < data.totalizers.length; i++)
+    {
+        if(data.totalizers[i].id != "Shipping"){
+            valorCartInt = valorCartInt + data.totalizers[i].value;
+        }
+    }
+
+    var valorCart = valorCartInt.toString();
+    
+
+    var valorArticulosCarrito = $(document.createElement('span'));
+    valorArticulosCarrito.addClass('valorArticulosCarrito');
+
+    valorCart = valorCart.slice( 0, ((valorCart.length)-2) );
+    valorTotalCarrito = valorCart;
+    valorCart = ponerPuntosDecimales(valorCart);
+    valorArticulosCarrito.text(' $'+valorCart+',00');
+
+    var wrapperCartInfo = $(document.createElement('div')).addClass('wrapperCartInfo');
+
+    // Barra precio para que sea envío gratuito
+    var barraMedidora = $(document.createElement('div')).addClass('barraMedidora');
+    var barraCantidad = $(document.createElement('div')).addClass('barraCantidad');
+
+    var tituloBarra = $(document.createElement('h3'));
+    tituloBarra.addClass('tituloBarra');
+    var valorRestanteFree = 130000 - parseInt(valorTotalCarrito);
+    var porcentajeFree = (valorTotalCarrito*100)/130000;
+    var porcentajeActual = $(document.createElement('span'));
+    porcentajeFree = parseInt(porcentajeFree);
+    //tituloBarra.text('Tu envío será ¡gratuito!');
+
+    if(valorRestanteFree < 130000 && valorRestanteFree > 0){
+        tituloBarra.text('Faltan $' + valorRestanteFree + ' para tu envío gratis.');
+        porcentajeActual.text(porcentajeFree+'%').addClass('porcentajeActual');
+        setTimeout(function(){
+            $('.barraCantidad').animate({
+                width: porcentajeFree+'%'
+            }, 500, function(){
+                $('.porcentajeActual').fadeIn(500);
+            });
+        }, 2000);
+        barraCantidad.append(porcentajeActual);
+    }
+    else{
+        porcentajeActual.text('100%').addClass('porcentajeActual');
+        tituloBarra.text('¡Tu envío será gratuito!');
+        setTimeout(function(){
+            $('.barraCantidad').animate({
+                width: '100%'
+            }, 500, function(){
+                $('.porcentajeActual').fadeIn(500);
+            });
+        }, 1000);
+        barraCantidad.append(porcentajeActual);
+    }
+
+
+    // Botones continuar comprando o ir al checkout
+    var irCheckout = $(document.createElement('div')).addClass('irAlCheckout');
+    var spanCheckout = $(document.createElement('span')).text('Finalizar compra');
+    irCheckout.append(spanCheckout);
+
+    var seguirComprando = $(document.createElement('div')).addClass('seguirComprando');
+    var spanSeguir = $(document.createElement('span')).text('Seguir comprando');
+    seguirComprando.append(spanSeguir);
+
+    // Botón de cerrar el lightbox
+    var cerrarLightbox = $(document.createElement('div')).addClass('cerrarLightbox').html('<i class="fas fa-times"></i>');
+    $('.lightbox').append(cerrarLightbox);
+
+    eleAgregadoCart.append(tituloCart);
+    eleAgregadoCart.append(infoEnvioCart);
+    barraMedidora.append(barraCantidad);
+
+    //wrapperItemAg.append(imgEleAg);
+    eleAgregadoCart.append(divImg);
+    divImg.append(imgEleAg);
+    wrapperItemAg.append(nomProdAg);
+    wrapperItemAg.append(priceItemAg);
+    wrapperItemAg.append(cantidadItemAg);
+
+    wrapperCartInfo.append(titResumenCarrito);
+    wrapperCartInfo.append(articulosCarrito);
+    wrapperCartInfo.append(valorArticulosCarrito);
+    wrapperCartInfo.append(tituloBarra);
+    wrapperCartInfo.append(barraMedidora);
+
+    eleAgregadoCart.append(wrapperItemAg);
+    eleAgregadoCart.append(wrapperCartInfo);
+    eleAgregadoCart.append(seguirComprando);
+    eleAgregadoCart.append(irCheckout);
+
+    $('.lightbox').append(eleAgregadoCart);
+
+    $('.blackbox').fadeIn(500);
+
+    $('.cerrarLightbox').click(function(){
+        console.log('cerrÃ¯Â¿Â½');
+        $('.blackbox').fadeOut(500, function(){
+            $('.blackbox').remove();
+            $('body').css({
+                overflow: 'scroll'
+            });
+        });
+    });
+
+    $('.seguirComprando').click(function(){
+        console.log('cerrÃ¯Â¿Â½');
+        $('.blackbox').fadeOut(500, function(){
+            $('.blackbox').remove();
+            $('body').css({
+                overflow: 'scroll'
+            });
+        });
+    });
+
+    $('.irAlCheckout').click(function(){
+        window.location.replace("/checkout");
+        $('body').css({
+            overflow: 'scroll'
+        });
+    });
+    resumenCarritoHeader.showQtyHeader();
+    resumenCarritoHeader.pintarResumenCarrito();
+};
+
+
+//Insertar caracteres dentro de string
+String.prototype.insert = function (index, string) {
+    if (index > 0)
+        return this.substring(0, index) + string + this.substring(index, this.length);
+    else
+        return string + this;
+};
+
+//Buscar la ubicación del punto y agregarlo
+ponerPuntosDecimales = function(string){
+    //var numeroPuntos = parseInt((string.length)/3);
+    var posPunto = (string.length)-3;
+    return string.insert(posPunto, '.');
+};
+
+function getParameterByName(url, name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(url);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}

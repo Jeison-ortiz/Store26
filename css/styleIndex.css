@@ -1,0 +1,170 @@
+nav{
+    background-image: url("../imagenes/fondos/fondogris.jpg");
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+ul,ol{
+    list-style: none;
+    
+}
+
+nav li a{
+    width: 150px;
+    text-align: center;
+    text-decoration: none;
+    padding: 10px 15px;
+    color: black;
+    display: block;
+    font-size:20px;
+    font-weight:bold;
+
+}
+
+nav >li{
+    float: left;
+}
+
+nav li a:hover{
+    text-decoration: none;
+    background-color:#292725;
+    border-radius: 4%;
+    color: white;
+    width: 150px;
+    z-index: 10;
+    transition: 1s;
+   
+    
+}
+
+nav li ul{
+    
+    display:none;
+    position:absolute;
+    min-width: 100px;
+    background-image: url("../imagenes/fondos/fondogris.jpg");
+    text-align:left;
+}
+
+nav ul li a:hover{
+    z-index: 10;
+    
+}
+
+nav li:hover > ul{
+    padding: 0%;
+    margin: 0%;
+    display: block;
+    text-align: left;
+    border-radius: 2%;
+    z-index: 10;
+    
+    
+}
+
+/*footer */
+
+footer{
+    
+    padding: 10px;
+}
+footer nav{
+    padding: 15px;
+}
+footer h4{
+    text-align: center;
+}
+#footerPrivacity a{
+    text-align: left;
+}
+
+#footerPrivacity li{
+    text-align: left;
+}
+footer p{
+    font-weight:bold;
+    font-size: 14px;
+}
+
+footer img{
+    margin-top: 2px;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+}
+ footer nav li{
+     text-align: center;
+     font-weight:bold;
+ }
+
+#logo{
+    margin-top: 70px;
+    margin-left: 40px;
+    width: 150px;
+    height: 40px
+}
+
+footer nav li a{
+    font-size: 12px;
+    margin: 0px;
+    padding: 5px;
+}
+
+/* formularios */
+
+/*login admin */
+
+#loginAdmin{
+    width: 35%;
+    height: 400px;
+    text-shadow: 1px 1px 1px gray;
+    box-shadow: 4px 4px 4px gray;
+    
+}
+
+#bodyAdmin{
+    background: #E1E1E1;
+}
+
+
+
+
+/* Restringido admin */
+
+#logoRestringido{
+    text-align: center;
+}
+
+#formulario1{
+    text-align: center;
+    width: 50%;
+    height: 500px;
+    border: 2px solid rgb(46, 45, 45);
+    text-shadow: 1px 1px 1px gray;
+    box-shadow: 4px 4px 4px gray;
+    border-radius: 1%;
+}
+#selctArticulos{
+    width: 30%;
+    text-align: center;
+    
+}
+#formLoadArticule{
+    width: 50%;
+    float: center;
+    text-align: center;
+    
+}
+#cardArticule{
+    width: 30%;
+    text-align: center;
+    border: 2px solid red;
+    
+}
+
+#titleGeneral{
+    text-align: center;
+}
+
+
+
+

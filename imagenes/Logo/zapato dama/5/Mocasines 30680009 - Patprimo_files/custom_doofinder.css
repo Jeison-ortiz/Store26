@@ -1,0 +1,30 @@
+.imPhone .df-mobile[data-layout=grid] .df-card__image {
+    height: 100%;
+}
+
+.wim-discount-rate {
+    background-color: #d4cece;
+    text-align: center;
+    max-width: 50%;
+    margin: 4px auto;
+}
+ul.ui-autocomplete.ui-menu.ui-widget.ui-widget-content.ui-corner-all {
+    display: none !important;
+}
+@media(min-width:769px){    
+    div#dfclassic {
+        width: 80% !important;
+        left: 10% !important;
+    }
+}
+@media(max-width:768px){    
+    div#dfclassic {
+        width: 100% !important;
+    }
+    .df-results { 
+    grid-template-columns: repeat(auto-fill,minmax(360px,1fr)) !important; 
+    }
+    .df-card__image { 
+        height: auto !important;
+    }
+}

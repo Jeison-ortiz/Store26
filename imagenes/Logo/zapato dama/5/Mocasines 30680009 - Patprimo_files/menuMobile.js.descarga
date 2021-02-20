@@ -1,0 +1,149 @@
+$(document).ready(function () {
+    var menuMobile = $('.menuMobileNew');
+    var openMenuMobile = $('.staticHeaderMobileNew .leftBoxMenuMobile .menuMobileIco');
+    var closeMenuMobile = $('.menuMobileNew .close-menu-mobile');
+    var primerNivel = $('.block-cats-primer-nivel');
+    var segundoNivel = $('.block-cat-segundo-nivel');
+    var tercerNivel = $('.block-cat-tercer-nivel');
+
+    closeMenuMobile.click(function () {
+        menuMobile.animate({
+            left: "-=100%"
+        }, 500);
+        primerNivel.animate({
+            left: "-100%"
+        }, 300);
+        segundoNivel.animate({
+            left: "-=100%"
+        }, 300);
+        tercerNivel.animate({
+            left: "-100%"
+        }, 300);
+    });
+
+    openMenuMobile.unbind("click").off("click").click(function () {
+        menuMobile.animate({
+            left: "+=100vw",
+            opacity: 1
+        }, 300);
+        setTimeout(function () {
+            window.scrollTo(0, 1);
+        }, 500);
+        primerNivel.animate({
+            left: "0"
+        }, 300);
+    });
+
+    $(".cat-primer-nivel .container-slider-next").not('.con-link').click(function () {
+        var openElement = $(this).closest(".cat-primer-nivel").data("class");
+        primerNivel.animate({
+            left: "-=100%"
+        }, 500);
+        $('.block-cat-segundo-nivel[data-class=' + openElement + ']').animate({
+            left: "0"
+        }, 500);
+    });
+
+    $(".cat-primer-nivel a").not('.con-link').click(function () {
+        var openElement = $(this).closest(".cat-primer-nivel").data("class");
+        primerNivel.animate({
+            left: "-=100%"
+        }, 500);
+        $('.block-cat-segundo-nivel[data-class=' + openElement + ']').animate({
+            left: "0"
+        }, 500);
+    });
+
+    $(".header-cat-segundo-nivel .container-slider-previous").click(function () {
+        segundoNivel.animate({
+            left: "-=100%"
+        }, 500);
+        primerNivel.animate({
+            left: "0"
+        }, 500);
+    });
+
+    $(".cat-segundo-nivel  .container-slider-next").click(function () {
+        var openElement = $(this).closest(".cat-segundo-nivel").data("class");
+        segundoNivel.animate({
+            left: "-=100%"
+        }, 500);
+        $('.block-cat-tercer-nivel[data-class=' + openElement + ']').animate({
+            left: "0"
+        }, 500);
+    });
+    $(".cat-segundo-nivel.sin-link a").click(function (e) {
+        e.preventDefault();
+        var openElement = $(this).closest(".cat-segundo-nivel").data("class");
+        segundoNivel.animate({
+            left: "-=100%"
+        }, 500);
+        $('.block-cat-tercer-nivel[data-class=' + openElement + ']').animate({
+            left: "0"
+        }, 500);
+    });
+
+    $(".header-cat-tercer-nivel .container-slider-previous").click(function () {
+        var openElement = $(this).closest(".header-cat-tercer-nivel").data("class");
+        tercerNivel.animate({
+            left: "-=100%"
+        }, 500);
+        $('.block-cat-segundo-nivel[data-class=' + openElement + ']').animate({
+            left: "0"
+        }, 500);
+    });
+
+    /* HEADER */
+    // Sobrescribir texto de input busqueda
+    $(".busca").find("input[type=text]").val("Buscar");
+
+    // Controlar scroll para mostrar/ocultar logo y buscador
+    setTimeout(function(){
+        $(window).scroll(function () {
+            if($(".categoryNew").length){ // En paginas de categoria el funcionamiento es diferente (PAT-459)
+                if($("#mobile_filter_buttons_container").length){
+                    var scrollTop = $(window).scrollTop();
+                    if (scrollTop > 50) {
+                        $("header .staticHeaderMobileNew.test-Seo").addClass("fixed");
+                    } else {
+                        $(".boxLogoMobile").children(".boxSearchMobile").hide();
+                        $("header .staticHeaderMobileNew.test-Seo").removeClass("fixed");
+                    }
+
+                    if($(".containerHeadMobile.with-faja").length){
+                        if(scrollTop > parseInt($("#mobile_filter_buttons_container").offset().top) - 128){
+                            if(!$(".mobile_filters_cloned").length){
+                                var topCloned = parseInt($("#url_app").children("img").first().css("height")) + 49
+                                $("#mobile_filter_buttons_container").clone(true).css({position:"fixed", top:topCloned,"z-index":2}).appendTo(".filters").addClass("mobile_filters_cloned")
+                            }
+                        }else{
+                            $(".mobile_filters_cloned").remove()
+                        }
+                    }else{
+                        if(scrollTop > parseInt($("#mobile_filter_buttons_container").offset().top) - 90){
+                            if(!$(".mobile_filters_cloned").length){
+                                var topCloned = 87;
+                                $("#mobile_filter_buttons_container").clone(true).css({position:"fixed", top:topCloned,"z-index":2}).appendTo(".filters").addClass("mobile_filters_cloned")
+                            }
+                        }else{
+                            $(".mobile_filters_cloned").remove()
+                        }
+                    }
+                }
+            }else{
+                if ($(window).scrollTop() > 50) {
+                    $(".boxLogoMobile").children("a").hide();
+                    $(".boxLogoMobile").children(".boxSearchMobile").show();
+                    $("header .staticHeaderMobileNew.test-Seo").addClass("fixed");
+                    $('#app_advertise_fixed img').height() != null ? $("header .staticHeaderMobileNew.test-Seo").attr('style','top:'+$('#app_advertise_fixed img').height().toString()+"px !important") : "";
+                } else {
+                    $(".boxLogoMobile").children("a").show();
+                    $(".boxLogoMobile").children(".boxSearchMobile").hide();
+                    $("header .staticHeaderMobileNew.test-Seo").removeClass("fixed");
+                    $("header .staticHeaderMobileNew.test-Seo").css('top',"0");
+                }
+            }
+        });
+    },1000);
+    /* FIN HEADER*/
+});

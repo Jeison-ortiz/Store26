@@ -1,0 +1,40 @@
+var userAgent = "" +navigator.userAgent;
+var gpsUserAgent = "mozilla/5.0 (linux; android 6.0.1; nexus";
+userAgent = userAgent.toLowerCase();
+try {
+    if ($('body').hasClass("home")){
+        //$('body.home #sidebar-wrapper-right-outer').remove();
+        if ($(window).width() <= 768){
+            $('.mainContent .home-desktop').remove();
+        }else{
+            $('.mainContent .home-mobile').remove();
+        }
+    }
+    if ($(window).width() <= 768){
+        $('header .headerNew.header18').remove(); //
+        $('footer.footer-desk').remove();
+    } else {
+        $('header .staticHeaderMobileNew').remove(); //
+        $('header .containerHeadMobile').remove();
+        $('header .menuMobileNew').remove();
+        $('footer.pat-footer-mobile.footer-mobile').remove();
+    }
+    if (userAgent.indexOf("chrome-lighthouse") > -1 && userAgent.indexOf(gpsUserAgent) > -1){
+        $('.popUpDesc.registro').remove();
+        if ($(window).width() <= 768){
+            $('#app_advertise_fixed').remove();
+        } else {
+            // only desktop
+            
+        }
+    } else {
+        if ($(window).width() <= 768){
+            
+        } else {
+            
+        }
+    }
+} catch (e){
+    console.log("WPO Error: "+e);
+}
+

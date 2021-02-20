@@ -1,0 +1,214 @@
+
+        (function() {
+          function insertScript(content, type, id) {
+            var s = document.createElement('script');
+            var body = document.querySelector('body');
+            s.type = type;
+            if (id) {
+              s.id = id;
+            }
+            s.innerText = content;
+            body.appendChild(s);
+          }
+          function insertCSS(content) {
+            var sheet = document.createElement('style');
+            var head = document.querySelector('head');
+            sheet.type = 'text/css';
+
+            sheet.innerText = content;
+            head.appendChild(sheet);
+          }
+        }());
+
+var doofinder_script ='//cdn.doofinder.com/media/js/doofinder-classic.7.latest.min.js';
+(function(d,t){var f=d.createElement(t),s=d.getElementsByTagName(t)[0];f.async=1;
+f.src=('https:'==location.protocol?'https:':'http:')+doofinder_script;
+f.setAttribute('charset','utf-8');
+s.parentNode.insertBefore(f,s)}(document,'script'));
+
+var dfClassicLayers  = [{
+  "queryInput": ".fulltext-search-box.ui-autocomplete-input",
+  "hashid": "56cb24400e18923281bc8dea8c75ba39",
+  "zone": "eu1",
+  "display": {
+    "lang": "es",
+       "facets":{
+            attached:'left',
+             custom:[
+                 {
+                    "name": "categories",
+                    "type": "terms",
+                    "label": "Categorias"
+                },
+                {
+                    "name": "price",
+                    "type": "range",
+                    "label": "Price"
+                },
+                {
+                    "name": "color",
+                    "type": "color",
+                    "label": "Color",
+                    "colors":{
+                        'azul':'#00178E',
+                        'negro':'#2A2927',
+                        'rojo':'#D72A16',
+                        'blanco':'#F0F0EE',
+                        'rosado':'#F5A0B5',
+                        'beige':'#D4B89A',
+                        'gris':'#2F3E46',
+                        'morado':'#41029C',
+                        'verde':'#75BE25',
+                        'vino':'#862143',
+                        'surtido':'',
+                        'café':'#8E5730',
+                        'naranja':'#F85709',
+                        'amarillo':'#FDCB27',
+                        'dorado':'#866F49',
+                    }
+                },
+                {
+                    name:'size',
+                    label:'Talla',
+                    type:'grid',
+                    order:[
+                        'xs','s','m','l','xl','xxl',
+                     '4','6','8','10','12','14','16','18','20','22','24','26','28','30','32','34','36','38','40','42','44','46','48'
+                    ]
+                }
+            ]
+        },    
+   "results": {
+            template: '{{#is_first}}\
+							{{#banner}}\
+								<div class="df-banner">\
+								  <a {{#blank}}target="_blank"{{/blank}} href="{{link}}" data-role="banner" data-banner="{{id}}">\
+									<img src="{{#remove-protocol}}{{image}}{{/remove-protocol}}">\
+								  </a>\
+								</div>\
+							{{/banner}}\
+				{{/is_first}}\
+			{{#results}}\
+              <div class="df-card" data-role="result">\
+              <a class="df-card__main" href="{{#url-params}}{{link}}{{/url-params}}" data-role="result-link" data-dfid="{{dfid}}">\
+                {{#image_link}}\
+                  <figure class="df-card__image">\
+                    <img src="{{#remove-protocol}}{{image_link}}{{/remove-protocol}}" alt="{{title}}">\
+                  </figure>\
+                {{/image_link}}\
+                <div class="df-card__content">\
+                  <div class="df-card__title">{{title}}</div>\
+                  <div class="df-card__description">{{description}}</div>\
+                  {{#price}}\
+                  <div class="df-card__pricing" data-id="{{#id}}{{id}}{{/id}}">\
+                    <span class="df-card__price {{#g:original_price}}df-card__price--old{{/g:original_price}}" >\
+                      {{#format-currency}}{{g:original_price}}{{/format-currency}}\
+                    </span>\
+                      <span class="df-card__price df-card__price--new">\
+                        {{#format-currency}}{{price}}{{/format-currency}}\
+                      </span>\
+                    </div>\
+                  {{/price}}\
+                </div>\
+              </a>\
+            </div>{{/results}}'
+        },
+    "templateVars": {
+      "topbarLogo": "https://patprimo.vteximg.com.br/arquivos/LOGO2017.png?v=636360815128400000",
+      "topbarLogoLink": "https://www.patprimo.com/"
+    }
+  },
+callbacks:{
+  resultsReceived: function(response) {
+            doofinderCallbackResultsReceived(response);
+        }
+}
+}];
+
+function doofinderCallbackResultsReceived(response){
+    if (response != undefined){
+        if (response.results.length){
+            recorrerProductos(response.results);
+        }
+    }
+}
+
+function recorrerProductos(products){
+    products.forEach(function (p) {
+        var priceOriginalFormat=wimPriceFormat(p["g:original_price"],"int");
+        var priceFormat=wimPriceFormat(p["price"],"int");
+        wimLinkFormat(p["id"], p["link"]);
+        if(priceOriginalFormat == priceFormat){
+            hidePriceOld(p.id);
+        }else{
+            var oldPriceFormatted =  priceOriginalFormat.toLocaleString('co-CO', { 'minimumFractionDigits':0, 'maximumFractionDigits':0 });
+            if($(".df-card__pricing[data-id="+p.id+"] .df-card__price.df-card__price--old").length==0){
+                if ($('a[data-dfid="'+p.dfid+'"]').length){
+                    $('a[data-dfid="'+p.dfid+'"] .df-card__price').addClass("df-card__price--new");
+                    $('a[data-dfid="'+p.dfid+'"] .df-card__pricing').prepend('<span class="df-card__price df-card__price--old">$' + oldPriceFormatted+'</span>');
+
+                }
+            } else {
+                $(".df-card__pricing[data-id="+p.id+"] .df-card__price.df-card__price--old").text('$' + oldPriceFormatted);
+            }
+
+            var discount=discountRate(priceOriginalFormat,priceFormat);
+            addShowDiscountRate(p, discount);
+        }
+    });
+}
+
+function hidePriceOld(idSku){
+    $(".df-card__pricing[data-id="+idSku+"] .df-card__price.df-card__price--old").hide();
+}
+
+function addShowDiscountRate(item,discount){
+
+    var idSku = item.id;
+    var content='<p class="wim-discount-rate"><span class="discount-rate">'+discount+'</span><span> %</span></p>';
+    if ($(".df-card__pricing[data-id="+idSku+"]").length){
+      $(".df-card__pricing[data-id="+idSku+"]").append(content);  
+    } else {
+      $('a[data-dfid="'+item.dfid+'"] .df-card__pricing').append(content);
+    }
+    
+}
+
+
+function wimPriceFormat(price, mode){
+
+    var textPrice = "" + price;
+    if (textPrice.indexOf(",") == -1){
+        price = parseFloat(price);
+    } else {
+        textPrice = textPrice.replace(/\./g, '');
+        textPrice = textPrice.replace(/,/g, '.');
+    }
+    price = parseFloat(textPrice);
+    switch(mode){
+        case "int":
+            return price;
+            break;
+        case "text":
+            price =  price.toLocaleString('co-CO', { 'minimumFractionDigits':2, 'maximumFractionDigits':2 });
+            return price;
+            break;
+    }
+    return textPrice;
+}
+
+function discountRate(price, priceOld){
+    var discount= (priceOld - price) * 100 / price;
+    discount=parseFloat(discount).toFixed(0);
+    return discount;
+}
+
+function wimLinkFormat(id, link){
+    var originalDomain = "www.patprimo.com";
+    var newDomain = window.location.hostname;
+
+    link = link.replace(originalDomain, newDomain);
+    if ($(".df-card__pricing[data-id="+id+"]").length){
+        $(".df-card__pricing[data-id="+id+"]").parent().parent().attr("href",link);
+    }
+}
